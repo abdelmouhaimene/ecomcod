@@ -1,1 +1,1 @@
-export * as testType from './testtype/testType'
+export * as testType from './testtype/testType.js'
