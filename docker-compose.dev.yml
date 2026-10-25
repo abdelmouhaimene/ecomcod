@@ -1,25 +1,25 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: turboconfig-postgres-dev
+    container_name: ecomcod-postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DATABASE_USER:-turboconfig}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-turboconfig_secret}
-      POSTGRES_DB: ${DATABASE_NAME:-turboconfig_db}
+      POSTGRES_USER: ${DATABASE_USER:-ecomcod}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ecomcod_secret}
+      POSTGRES_DB: ${DATABASE_NAME:-ecomcod_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-turboconfig} -d ${DATABASE_NAME:-turboconfig_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-ecomcod} -d ${DATABASE_NAME:-ecomcod_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: turboconfig-redis-dev
+    container_name: ecomcod-redis-dev
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secret}
     ports:

@@ -75,6 +75,6 @@ jobs:
           build-args: |
             APP_NAME=${{ matrix.app }}
           target: ${{ matrix.app == 'api' && 'runner-nestjs' || 'runner-nextjs' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/turboconfig-${{ matrix.app }}:latest,${{ secrets.DOCKERHUB_USERNAME }}/turboconfig-${{ matrix.app }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/turboconfig-${{ matrix.app }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/turboconfig-${{ matrix.app }}:buildcache,mode=max
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ecomcod-${{ matrix.app }}:latest,${{ secrets.DOCKERHUB_USERNAME }}/ecomcod-${{ matrix.app }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/ecomcod-${{ matrix.app }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/ecomcod-${{ matrix.app }}:buildcache,mode=max

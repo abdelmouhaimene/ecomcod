@@ -1,27 +1,27 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: turboconfig-postgres
+    container_name: ecomcod-postgres
     restart: always
     environment:
-      POSTGRES_USER: ${DATABASE_USER:-turboconfig}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-turboconfig_secret}
-      POSTGRES_DB: ${DATABASE_NAME:-turboconfig_db}
+      POSTGRES_USER: ${DATABASE_USER:-ecomcod}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ecomcod_secret}
+      POSTGRES_DB: ${DATABASE_NAME:-ecomcod_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-turboconfig} -d ${DATABASE_NAME:-turboconfig_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-ecomcod} -d ${DATABASE_NAME:-ecomcod_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - turboconfig-network
+      - ecomcod-network
 
   redis:
     image: redis:7-alpine
-    container_name: turboconfig-redis
+    container_name: ecomcod-redis
     restart: always
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secret}
     ports:
@@ -34,7 +34,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - turboconfig-network
+      - ecomcod-network
 
   api:
     build:
@@ -43,7 +43,7 @@ services:
       args:
         APP_NAME: api
       target: runner-nestjs
-    container_name: turboconfig-api
+    container_name: ecomcod-api
     restart: always
     ports:
       - "3002:3002"
@@ -52,9 +52,9 @@ services:
       - PORT=3002
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
-      - DATABASE_USER=${DATABASE_USER:-turboconfig}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-turboconfig_secret}
-      - DATABASE_NAME=${DATABASE_NAME:-turboconfig_db}
+      - DATABASE_USER=${DATABASE_USER:-ecomcod}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-ecomcod_secret}
+      - DATABASE_NAME=${DATABASE_NAME:-ecomcod_db}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_secret}
@@ -64,7 +64,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - turboconfig-network
+      - ecomcod-network
 
   web:
     build:
@@ -73,7 +73,7 @@ services:
       args:
         APP_NAME: web
       target: runner-nextjs
-    container_name: turboconfig-web
+    container_name: ecomcod-web
     restart: always
     ports:
       - "3000:3000"
@@ -81,7 +81,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
     networks:
-      - turboconfig-network
+      - ecomcod-network
 
   dashboard:
     build:
@@ -90,7 +90,7 @@ services:
       args:
         APP_NAME: dashboard
       target: runner-nextjs
-    container_name: turboconfig-dashboard
+    container_name: ecomcod-dashboard
     restart: always
     ports:
       - "3001:3001"
@@ -98,12 +98,12 @@ services:
       - NODE_ENV=production
       - PORT=3001
     networks:
-      - turboconfig-network
+      - ecomcod-network
 
 volumes:
   postgres-data:
   redis-data:
 
 networks:
-  turboconfig-network:
+  ecomcod-network:
     driver: bridge

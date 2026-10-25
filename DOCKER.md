@@ -1,6 +1,6 @@
-# Docker Infrastructure for Turboconfig
+# Docker Infrastructure for ecomcod
 
-This document explains the Docker setup for the Turboconfig monorepo.
+This document explains the Docker setup for the ecomcod monorepo.
 
 ## Architecture
 
