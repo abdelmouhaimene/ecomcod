@@ -1,3 +1,4 @@
 @import "tailwindcss";
-@source "../../apps/web/src/**/*.{ts,tsx}";
-@source "../../apps/dashboard/src/**/*.{ts,tsx}";
+@source "../../apps/web/**/*.{ts,tsx}";
+@source "../../apps/dashboard/**/*.{ts,tsx}";
+@source "./src/**/*.{ts,tsx}";

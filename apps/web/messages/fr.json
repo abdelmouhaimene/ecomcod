@@ -1,0 +1,186 @@
+{
+  "common": {
+    "brandName": "AURELIA TECH",
+    "brandSubtitle": "ATELIER DE PRÉCISION",
+    "currency": "€",
+    "search": "Rechercher du matériel haut de gamme...",
+    "close": "Fermer",
+    "back": "Retour",
+    "continue": "Continuer",
+    "cart": "Panier",
+    "items": "articles",
+    "viewAll": "Voir tout",
+    "addToBag": "Ajouter au sac",
+    "buyNow": "Acheter maintenant",
+    "claimOffer": "Réclamer l'offre",
+    "verified": "Vérifié"
+  },
+  "nav": {
+    "home": "Accueil",
+    "categories": "Catégories",
+    "cart": "Panier",
+    "account": "Compte",
+    "menu": "Menu",
+    "toggleTheme": "Changer de thème",
+    "language": "Langue",
+    "concierge": "Conciergerie"
+  },
+  "home": {
+    "curatedDrops": "Éditions Rares",
+    "exclusiveOffer": "-25% EXCLUSIF",
+    "edition01": "ÉDITION 01 SUR 150",
+    "acousticMastery": "Maîtrise Acoustique",
+    "heroProductTitle": "Casque Sans Fil Aura Pro Studio",
+    "heroProductDesc": "Chambres acoustiques usinées en titane plaqué or 24 carats avec DAC ultra-faible latence sans perte.",
+    "currentTier": "Offre Actuelle",
+    "limitedDrop": "ÉDITION LIMITÉE",
+    "deskSystem": "SYSTÈME BUREAU",
+    "watchTitle": "Montre Titanium Ultra",
+    "watchDesc": "Verre en Cristal de Saphir",
+    "dockTitle": "Station MagCharge Desk Dock",
+    "dockDesc": "Double Pad Qi2 25W",
+    "hardwareCatalog": "Catalogue Hardware",
+    "curatedSegments": "Segments Curatés",
+    "allSpecs": "Toutes les spécifications",
+    "categories": {
+      "audio": "Audio & Hi-Fi",
+      "wearables": "Montres & Bagues",
+      "power": "MagSafe & Énergie",
+      "desk": "Espace Bureau",
+      "optics": "Optique",
+      "cases": "Étuis d'Art"
+    },
+    "mechanicalRefinement": "Raffinement Mécanique",
+    "featuredInnovations": "Innovations en Vedette",
+    "filterTags": {
+      "all": "Tous les modèles",
+      "trending": "Tendances",
+      "audio": "Audio Haute Résolution",
+      "wearables": "Accessoires Portés"
+    },
+    "products": {
+      "soundbar": {
+        "tag": "NOUVEAUTÉ",
+        "name": "Barre de Son Aura Neo",
+        "spec": "Spatial Dolby Atmos 7.1"
+      },
+      "ring": {
+        "tag": "MEILLEURE VENTE",
+        "name": "Bague Connectée Chronos Or",
+        "spec": "Titane & Biométrie Optique"
+      },
+      "ganStation": {
+        "tag": "4-PORTS GAN",
+        "name": "Station GaN Lumina 100W",
+        "spec": "Alimentation Haute Précision"
+      },
+      "keyboard": {
+        "tag": "SUR-MESURE",
+        "name": "Clavier Mécanique Apex",
+        "spec": "Châssis Laiton & Joint Amorti"
+      }
+    },
+    "appraisals": {
+      "badge": "Vérifications Patrons",
+      "title": "Évaluations Clients",
+      "collector": "COLLECTIONNEUR VÉRIFIÉ",
+      "location": "Boutique NYC",
+      "quote": "« La clarté acoustique et la finition en aluminium brossé or surpassent tout ce qu'on trouve dans le commerce. Aurelia incarne l'informatique physique de luxe. »",
+      "author": "Julian Vance",
+      "role": "Rédacteur Tech en Chef & Collectionneur"
+    },
+    "footer": {
+      "about": "Matériel de précision architecturale et accessoires physiques conçus pour les environnements de calcul les plus exigeants.",
+      "boutique": "Boutique Flagship",
+      "boutiqueAddress": "540 Madison Ave, New York, NY",
+      "concierge": "Conciergerie & Service Client",
+      "conciergePhone": "+1 800 450 GOLD",
+      "conciergeEmail": "support@aurumtech.luxury",
+      "conciergeHours": "Lun–Sam : 09h00 – 20h00 EST",
+      "links": {
+        "stores": "Adresses Boutiques",
+        "support": "Support Client",
+        "warranty": "Garantie & Entretien",
+        "auth": "Vérification d'Authenticité",
+        "privacy": "Confidentialité",
+        "terms": "Conditions Générales"
+      },
+      "copyright": "© 2025 Aurelia Precision Technologies Inc. Tous droits réservés.",
+      "isoBadge": "MATÉRIEL CERTIFIÉ ISO 9001 PRÉCISION"
+    }
+  },
+  "product": {
+    "flagshipBadge": "ACOUSTIQUE D'EXCEPTION",
+    "goldEdition": "Édition Or",
+    "lossless": "Audio Sans Perte 24-bit",
+    "save": "-24% D'ÉCONOMIE",
+    "splitPayment": "Ou 4 paiements sans frais de",
+    "selectMaterial": "Choisir la Finition & le Matériau",
+    "materials": {
+      "gold": "Or Titane",
+      "slate": "Ardoise Spatiale",
+      "ivory": "Ivoire Céramique"
+    },
+    "specsTitle": "Spécifications Architecturales",
+    "specs": {
+      "chambers": "Chambres Acoustiques Usinées Or 24K",
+      "driver": "Transducteurs 50mm Revêtus de Béryllium",
+      "battery": "Batterie Solide Ultra-Dense 48 Heures",
+      "dac": "Quad DAC 32-bit / 384kHz Sans Perte"
+    },
+    "inTheBox": "Inclus dans le Coffre Maître",
+    "inTheBoxItems": [
+      "Casque Sans Fil Aura Pro Studio",
+      "Socle de Charge en Titane Usiné",
+      "Câble Audio Tressé Plaqué Or 24K",
+      "Certificat d'Authenticité Numéroté"
+    ],
+    "addedToBag": "Ajouté au Sac",
+    "checkoutNow": "Commande Immédiate"
+  },
+  "checkout": {
+    "title": "Sac d'Expédition & Paiement",
+    "itemsInBag": "Articles dans le Sac",
+    "quantity": "Quantité",
+    "remove": "Supprimer",
+    "packagingTitle": "Emballage Coffre de Luxe Inclus",
+    "packagingDesc": "Expédié dans un écrin scellé en titane anodisé résistant à toute tentative d'effraction.",
+    "shippingMethod": "Conciergerie de Livraison",
+    "whiteGlove": "Transport Blindé Gants Blancs (Offert)",
+    "vaultCourier": "Courrier Privé Sécurisé (24h)",
+    "paymentMethod": "Protocole de Règlement",
+    "applePay": "Apple Pay (Biométrique Instantané)",
+    "creditCard": "Carte Noire / Carte Luxe",
+    "conciergeInvoice": "Virement Conciergerie Privée",
+    "orderSummary": "Récapitulatif de la Valeur",
+    "subtotal": "Sous-total",
+    "vaultInsurance": "Assurance Coffre-Fort",
+    "shipping": "Livraison",
+    "tax": "Taxe Estimée",
+    "total": "Valeur Totale",
+    "placeOrder": "Confirmer & Expédier"
+  },
+  "tracking": {
+    "vaultBadge": "COFFRE D'EXPÉDITION",
+    "orderConfirmed": "Commande Confirmée & Scellée",
+    "orderNumber": "Commande #AUR-94028",
+    "orderSubtitle": "Votre matériel de précision est en cours de préparation dans notre coffre climatisé.",
+    "estimatedDelivery": "Remise Estimée",
+    "deliveryTime": "Demain avant 11h30 EST",
+    "courier": "Transport Blindé Privé",
+    "courierName": "Vance & Sterling Logistics",
+    "trackingId": "Suivi #TRK-8829-XG",
+    "timeline": {
+      "step1": "Commande Scellée",
+      "step1Desc": "Paiement validé & clé d'authentification générée",
+      "step2": "Assemblage de Précision",
+      "step2Desc": "Calibrage & test de réponse acoustique",
+      "step3": "Expédition Coffre",
+      "step3Desc": "Scellement dans l'écrin blindé inviolable",
+      "step4": "Remise en Gants Blancs",
+      "step4Desc": "Signature requise à la livraison physique"
+    },
+    "contactConcierge": "Contacter la Conciergerie",
+    "returnHome": "Retour à la Boutique"
+  }
+}

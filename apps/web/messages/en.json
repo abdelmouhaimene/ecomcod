@@ -1,0 +1,186 @@
+{
+  "common": {
+    "brandName": "AURELIA TECH",
+    "brandSubtitle": "PRECISION ATELIER",
+    "currency": "$",
+    "search": "Search premium tech...",
+    "close": "Close",
+    "back": "Back",
+    "continue": "Continue",
+    "cart": "Cart",
+    "items": "items",
+    "viewAll": "View All",
+    "addToBag": "Add to Bag",
+    "buyNow": "Buy Now",
+    "claimOffer": "Claim Offer",
+    "verified": "Verified"
+  },
+  "nav": {
+    "home": "Home",
+    "categories": "Categories",
+    "cart": "Cart",
+    "account": "Account",
+    "menu": "Menu",
+    "toggleTheme": "Toggle Theme",
+    "language": "Language",
+    "concierge": "Concierge"
+  },
+  "home": {
+    "curatedDrops": "Curated Drops",
+    "exclusiveOffer": "25% OFF EXCLUSIVE",
+    "edition01": "EDITION 01 OF 150",
+    "acousticMastery": "Acoustic Mastery",
+    "heroProductTitle": "Aura Pro Studio Wireless Headphones",
+    "heroProductDesc": "Acoustic chambers machined from 24K gold-plated titanium with lossless ultra-low latency DAC.",
+    "currentTier": "Current Tier",
+    "limitedDrop": "LIMITED DROP",
+    "deskSystem": "DESK SYSTEM",
+    "watchTitle": "Titanium Watch Ultra",
+    "watchDesc": "Sapphire Crystal Lens",
+    "dockTitle": "MagCharge Desk Dock",
+    "dockDesc": "Dual 25W Qi2 Pad",
+    "hardwareCatalog": "Hardware Catalog",
+    "curatedSegments": "Curated Segments",
+    "allSpecs": "All Specs",
+    "categories": {
+      "audio": "Audio & Hi-Fi",
+      "wearables": "Wearables",
+      "power": "MagSafe & Power",
+      "desk": "Desk Setup",
+      "optics": "Optics",
+      "cases": "Bespoke Cases"
+    },
+    "mechanicalRefinement": "Mechanical Refinement",
+    "featuredInnovations": "Featured Innovations",
+    "filterTags": {
+      "all": "All Units",
+      "trending": "Trending",
+      "audio": "Audio Hi-Res",
+      "wearables": "Wearables"
+    },
+    "products": {
+      "soundbar": {
+        "tag": "NEW RELEASE",
+        "name": "Aura Soundbar Neo",
+        "spec": "Spatial Dolby Atmos 7.1"
+      },
+      "ring": {
+        "tag": "BEST SELLER",
+        "name": "Chronos Gold Smart Ring",
+        "spec": "Titanium & Optical Biometrics"
+      },
+      "ganStation": {
+        "tag": "4-PORT GAN",
+        "name": "Lumina 100W GaN Station",
+        "spec": "Precision Power Delivery"
+      },
+      "keyboard": {
+        "tag": "BESPOKE",
+        "name": "Apex Mechanical Keyboard",
+        "spec": "Lubed Gasket Brass Mount"
+      }
+    },
+    "appraisals": {
+      "badge": "Patron Verifications",
+      "title": "Client Appraisals",
+      "collector": "VERIFIED COLLECTOR",
+      "location": "NYC Boutique",
+      "quote": "“The acoustic clarity and golden brushed aluminum finish exceed anything from standard retailers. Aurelia represents a masterclass in modern physical computing.”",
+      "author": "Julian Vance",
+      "role": "Senior Tech Editor & Collector"
+    },
+    "footer": {
+      "about": "Architectural precision hardware and high-grade physical accoutrements crafted for discerning computational environments.",
+      "boutique": "Flagship Boutique",
+      "boutiqueAddress": "540 Madison Ave, New York, NY",
+      "concierge": "Concierge & Client Care",
+      "conciergePhone": "+1 800 450 GOLD",
+      "conciergeEmail": "support@aurumtech.luxury",
+      "conciergeHours": "Mon–Sat: 09:00 – 20:00 EST",
+      "links": {
+        "stores": "Store Locations",
+        "support": "Customer Support",
+        "warranty": "Warranty & Care",
+        "auth": "Authenticity Verification",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      },
+      "copyright": "© 2025 Aurelia Precision Technologies Inc. All rights reserved.",
+      "isoBadge": "ISO 9001 PRECISION CERTIFIED HARDWARE"
+    }
+  },
+  "product": {
+    "flagshipBadge": "FLAGSHIP ACOUSTICS",
+    "goldEdition": "Gold Edition",
+    "lossless": "Lossless Audio 24-bit",
+    "save": "SAVE 24%",
+    "splitPayment": "Or 4 interest-free payments of",
+    "selectMaterial": "Select Finish & Material",
+    "materials": {
+      "gold": "Titanium Gold",
+      "slate": "Space Slate",
+      "ivory": "Ceramic Ivory"
+    },
+    "specsTitle": "Architectural Specifications",
+    "specs": {
+      "chambers": "Machined 24K Gold Acoustic Chambers",
+      "driver": "50mm Beryllium-Coated Transducers",
+      "battery": "48-Hour Ultra-Dense Solid-State Battery",
+      "dac": "Lossless 32-bit / 384kHz Quad DAC"
+    },
+    "inTheBox": "Included in Master Vault",
+    "inTheBoxItems": [
+      "Aura Pro Studio Wireless Headphones",
+      "Machined Titanium Charging Cradle",
+      "Braided 24K Gold Audio Interconnect Cable",
+      "Collector Authenticity Certificate with Serial Number"
+    ],
+    "addedToBag": "Added to Bag",
+    "checkoutNow": "Direct Checkout"
+  },
+  "checkout": {
+    "title": "Dispatch Bag & Checkout",
+    "itemsInBag": "Items in Dispatch Bag",
+    "quantity": "Quantity",
+    "remove": "Remove",
+    "packagingTitle": "Luxury Vault Packaging Included",
+    "packagingDesc": "Shipped in sealed anodized titanium collector case with tamper-proof seal.",
+    "shippingMethod": "Delivery Concierge",
+    "whiteGlove": "White-Glove Armored Express (Complimentary)",
+    "vaultCourier": "Private Vault Courier (Next Day)",
+    "paymentMethod": "Select Payment Protocol",
+    "applePay": "Apple Pay (Instant Biometric)",
+    "creditCard": "Black Card / Luxury Card",
+    "conciergeInvoice": "Private Concierge Wire / Invoice",
+    "orderSummary": "Valuation Summary",
+    "subtotal": "Subtotal",
+    "vaultInsurance": "Vault Insurance",
+    "shipping": "Shipping",
+    "tax": "Estimated Tax",
+    "total": "Total Valuation",
+    "placeOrder": "Confirm & Dispatch Order"
+  },
+  "tracking": {
+    "vaultBadge": "DISPATCH VAULT",
+    "orderConfirmed": "Order Confirmed & Sealed",
+    "orderNumber": "Order #AUR-94028",
+    "orderSubtitle": "Your precision hardware is being prepared in our climate-controlled vault.",
+    "estimatedDelivery": "Estimated Handover",
+    "deliveryTime": "Tomorrow by 11:30 AM EST",
+    "courier": "Private Armored Courier",
+    "courierName": "Vance & Sterling Logistics",
+    "trackingId": "Tracking #TRK-8829-XG",
+    "timeline": {
+      "step1": "Order Sealed",
+      "step1Desc": "Payment verified & authentication key generated",
+      "step2": "Precision Assembly",
+      "step2Desc": "Calibrated & acoustic frequency tested",
+      "step3": "Vault Dispatch",
+      "step3Desc": "Sealed in tamper-evident armored dispatch box",
+      "step4": "White-Glove Handover",
+      "step4Desc": "Signature required upon physical delivery"
+    },
+    "contactConcierge": "Contact Vault Concierge",
+    "returnHome": "Return to Boutique Home"
+  }
+}
