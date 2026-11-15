@@ -182,5 +182,43 @@
     },
     "contactConcierge": "Contact Vault Concierge",
     "returnHome": "Return to Boutique Home"
+  },
+  "auth": {
+    "title": "Client Access",
+    "subtitle": "Passwordless entry to your private vault.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Send verification code",
+    "sendingCode": "Sending code…",
+    "codeTitle": "Check your inbox",
+    "codeSentTo": "We sent a 6-digit code to {email}.",
+    "codeLabel": "Verification code",
+    "verify": "Verify & enter",
+    "verifying": "Verifying…",
+    "resendIn": "Resend in {seconds}s",
+    "resend": "Resend code",
+    "changeEmail": "Use a different email",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "backToStore": "Back to the boutique",
+    "signedInTitle": "You are signed in",
+    "signedInAs": "Signed in as",
+    "continueShopping": "Continue shopping",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "signIn": "Sign in",
+    "account": "Account",
+    "errors": {
+      "invalidEmail": "Enter a valid email address.",
+      "invalidCode": "That code is invalid or has expired.",
+      "rateLimited": "Please wait a minute before requesting another code.",
+      "network": "Could not reach the authentication service. Is the API running?",
+      "generic": "Something went wrong. Please try again.",
+      "google_denied": "Google sign-in was cancelled.",
+      "invalid_state": "Your sign-in session expired. Please try again.",
+      "email_unverified": "Your Google email address is not verified, so it cannot be used to sign in.",
+      "account_disabled": "This account has been disabled.",
+      "google_failed": "Google sign-in failed. Please try again."
+    }
   }
 }

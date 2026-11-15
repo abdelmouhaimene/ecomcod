@@ -15,4 +15,15 @@ export const configValidationSchema = Joi.object({
   REDIS_HOST: Joi.string().required(),
   REDIS_PORT: Joi.number().default(6379),
   REDIS_PASSWORD: Joi.string().allow('').optional(),
+
+  OTP_SECRET: Joi.string().min(16).required(),
+
+  SESSION_TTL_S: Joi.number().integer().min(60).default(604800),
+  CORS_ORIGINS: Joi.string().default('http://localhost:3000,http://localhost:3001'),
+
+  // Optional: Google login is disabled when these are empty.
+  GOOGLE_CLIENT_ID: Joi.string().allow('').optional(),
+  GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),
+  GOOGLE_CALLBACK_URL: Joi.string().uri().allow('').optional(),
+  FRONTEND_URL: Joi.string().uri().default('http://localhost:3000'),
 }).unknown(true);

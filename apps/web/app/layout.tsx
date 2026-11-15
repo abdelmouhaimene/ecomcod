@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { ThemeProvider } from '../components/theme-provider';
 import { StoreProvider } from '../context/store-context';
+import { AuthProvider } from '../context/auth-context';
 import { Header } from '../components/layout/header';
 import { BottomNav } from '../components/layout/bottom-nav';
 import './globals.css';
@@ -56,9 +57,11 @@ export default async function RootLayout({
             disableTransitionOnChange={false}
           >
             <StoreProvider>
-              <Header currentLocale={locale} />
-              <div className="flex-1 pb-16 md:pb-0">{children}</div>
-              <BottomNav />
+              <AuthProvider>
+                <Header currentLocale={locale} />
+                <div className="flex-1 pb-16 md:pb-0">{children}</div>
+                <BottomNav />
+              </AuthProvider>
             </StoreProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

@@ -182,5 +182,43 @@
     },
     "contactConcierge": "Contacter la Conciergerie",
     "returnHome": "Retour à la Boutique"
+  },
+  "auth": {
+    "title": "Accès Client",
+    "subtitle": "Entrée sans mot de passe dans votre coffre privé.",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "sendCode": "Envoyer le code de vérification",
+    "sendingCode": "Envoi du code…",
+    "codeTitle": "Consultez votre boîte de réception",
+    "codeSentTo": "Nous avons envoyé un code à 6 chiffres à {email}.",
+    "codeLabel": "Code de vérification",
+    "verify": "Vérifier et entrer",
+    "verifying": "Vérification…",
+    "resendIn": "Renvoyer dans {seconds} s",
+    "resend": "Renvoyer le code",
+    "changeEmail": "Utiliser une autre adresse",
+    "or": "ou",
+    "continueWithGoogle": "Continuer avec Google",
+    "backToStore": "Retour à la boutique",
+    "signedInTitle": "Vous êtes connecté",
+    "signedInAs": "Connecté en tant que",
+    "continueShopping": "Continuer vos achats",
+    "signOut": "Se déconnecter",
+    "signingOut": "Déconnexion…",
+    "signIn": "Se connecter",
+    "account": "Compte",
+    "errors": {
+      "invalidEmail": "Saisissez une adresse e-mail valide.",
+      "invalidCode": "Ce code est invalide ou a expiré.",
+      "rateLimited": "Veuillez patienter une minute avant de demander un nouveau code.",
+      "network": "Service d'authentification injoignable. L'API est-elle démarrée ?",
+      "generic": "Une erreur est survenue. Veuillez réessayer.",
+      "google_denied": "La connexion Google a été annulée.",
+      "invalid_state": "Votre session de connexion a expiré. Veuillez réessayer.",
+      "email_unverified": "Votre adresse e-mail Google n'est pas vérifiée et ne peut pas être utilisée.",
+      "account_disabled": "Ce compte a été désactivé.",
+      "google_failed": "La connexion Google a échoué. Veuillez réessayer."
+    }
   }
 }

@@ -182,5 +182,43 @@
     },
     "contactConcierge": "الاتصال بكونسيرج الخزينة",
     "returnHome": "العودة إلى البوتيك"
+  },
+  "auth": {
+    "title": "دخول العملاء",
+    "subtitle": "دخول بدون كلمة مرور إلى خزنتك الخاصة.",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "إرسال رمز التحقق",
+    "sendingCode": "جارٍ إرسال الرمز…",
+    "codeTitle": "تفقّد بريدك الوارد",
+    "codeSentTo": "أرسلنا رمزًا مكوّنًا من 6 أرقام إلى {email}.",
+    "codeLabel": "رمز التحقق",
+    "verify": "تحقّق وادخل",
+    "verifying": "جارٍ التحقق…",
+    "resendIn": "إعادة الإرسال خلال {seconds} ثانية",
+    "resend": "إعادة إرسال الرمز",
+    "changeEmail": "استخدام بريد آخر",
+    "or": "أو",
+    "continueWithGoogle": "المتابعة باستخدام Google",
+    "backToStore": "العودة إلى المتجر",
+    "signedInTitle": "أنت مسجّل الدخول",
+    "signedInAs": "مسجّل الدخول باسم",
+    "continueShopping": "مواصلة التسوق",
+    "signOut": "تسجيل الخروج",
+    "signingOut": "جارٍ تسجيل الخروج…",
+    "signIn": "تسجيل الدخول",
+    "account": "الحساب",
+    "errors": {
+      "invalidEmail": "أدخل بريدًا إلكترونيًا صالحًا.",
+      "invalidCode": "هذا الرمز غير صالح أو منتهي الصلاحية.",
+      "rateLimited": "يرجى الانتظار دقيقة قبل طلب رمز جديد.",
+      "network": "تعذّر الوصول إلى خدمة المصادقة. هل الخادم يعمل؟",
+      "generic": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+      "google_denied": "تم إلغاء تسجيل الدخول عبر Google.",
+      "invalid_state": "انتهت جلسة تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+      "email_unverified": "بريدك الإلكتروني في Google غير موثّق ولا يمكن استخدامه.",
+      "account_disabled": "تم تعطيل هذا الحساب.",
+      "google_failed": "فشل تسجيل الدخول عبر Google. يرجى المحاولة مرة أخرى."
+    }
   }
 }

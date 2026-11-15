@@ -5,14 +5,23 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ThemeToggle } from '../theme-toggle';
 import { LanguageSelector } from '../language-selector';
+import { AccountMenu } from './account-menu';
 import { useStore } from '../../context/store-context';
+import { useAuth } from '../../context/auth-context';
 
 export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
+  const tAuth = useTranslations('auth');
   const { totalCount } = useStore();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+
+  const handleSignOut = async () => {
+    await logout();
+    setMenuOpen(false);
+  };
 
   return (
     <>
@@ -51,6 +60,9 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
 
             {/* Dark Mode Toggle */}
             <ThemeToggle />
+
+            {/* Account / Sign in */}
+            <AccountMenu />
 
             {/* Cart Bag with Badge */}
             <Link
@@ -167,10 +179,38 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                   </span>
                   <span>Order Tracking</span>
                 </Link>
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center space-x-3 p-2.5 rounded-lg hover:bg-surface-container-low text-on-surface hover:text-primary transition-colors"
+                >
+                  <span className="material-symbols-outlined text-primary text-[20px]">
+                    person
+                  </span>
+                  <span>{user ? t('account') : tAuth('signIn')}</span>
+                </Link>
               </nav>
             </div>
 
             <div className="pt-6 border-t border-outline-variant/20 space-y-3">
+              {user && (
+                <div className="p-3 rounded-lg bg-surface-container-low">
+                  <p className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant">
+                    {tAuth('signedInAs')}
+                  </p>
+                  <p className="font-body-sm text-[12px] text-on-surface truncate">
+                    {user.fullName?.trim() || user.email}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void handleSignOut()}
+                    className="mt-2 inline-flex items-center gap-1 font-label-caps text-[10px] uppercase tracking-widest text-error hover:underline"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">logout</span>
+                    {tAuth('signOut')}
+                  </button>
+                </div>
+              )}
               <div className="p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
                 <span className="font-label-caps text-[11px] text-on-surface-variant">Theme</span>
                 <ThemeToggle />
