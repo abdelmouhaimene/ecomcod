@@ -1,18 +1,18 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import type { Redis } from 'ioredis';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module.js';
-import { MailService } from '../src/auth/mail.service.js';
-import { EmailDomainService } from '../src/auth/email-domain.service.js';
+import { MailService } from '../src/auth/email/mail.service.js';
+import { EmailDomainService } from '../src/auth/email/email-domain.service.js';
 import { REDIS_CLIENT } from '../src/redis/redis.module.js';
 import { User } from '../src/users/entities/user.entity.js';
 
 /**
  * Full passwordless flow against the real Postgres + Redis from docker compose:
- *   signup -> verify (Set-Cookie) -> /auth/me -> logout -> /auth/me 401
+ *   signup -> verify (Set-Cookie) -> /v1/auth/me -> logout -> /v1/auth/me 401
  *
  * Requires `docker compose up -d postgres redis` and the apps/api .env file.
  */
@@ -40,7 +40,8 @@ describe('Auth (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    // Mirror main.ts so cookies and DTO validation behave the same.
+    // Mirror main.ts so cookies, versioning and DTO validation behave the same.
+    app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
     app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
@@ -59,7 +60,7 @@ describe('Auth (e2e)', () => {
 
   it('signs up, verifies, authenticates, then logs out', async () => {
     await request(app.getHttpServer())
-      .post('/auth/signup')
+      .post('/v1/auth/signup')
       .send({ email })
       .expect(200)
       .expect(({ body }) => {
@@ -70,7 +71,7 @@ describe('Auth (e2e)', () => {
     expect(code).toMatch(/^\d{6}$/);
 
     const verify = await request(app.getHttpServer())
-      .post('/auth/verify-email')
+      .post('/v1/auth/verify-email')
       .send({ email, code })
       .expect(200);
 
@@ -86,7 +87,7 @@ describe('Auth (e2e)', () => {
     const sessionCookie = setCookie[0].split(';')[0];
 
     await request(app.getHttpServer())
-      .get('/auth/me')
+      .get('/v1/auth/me')
       .set('Cookie', sessionCookie)
       .expect(200)
       .expect(({ body }) => {
@@ -94,16 +95,16 @@ describe('Auth (e2e)', () => {
         expect(body).not.toHaveProperty('password');
       });
 
-    await request(app.getHttpServer()).get('/auth/me').expect(401);
+    await request(app.getHttpServer()).get('/v1/auth/me').expect(401);
 
     await request(app.getHttpServer())
-      .post('/auth/logout')
+      .post('/v1/auth/logout')
       .set('Cookie', sessionCookie)
       .expect(204);
 
     // Revoked server-side: replaying the cookie must not work.
     await request(app.getHttpServer())
-      .get('/auth/me')
+      .get('/v1/auth/me')
       .set('Cookie', sessionCookie)
       .expect(401);
   });
@@ -111,28 +112,28 @@ describe('Auth (e2e)', () => {
   it('rejects a wrong code and a reused code', async () => {
     const second = `e2e.${Date.now()}.2@gmail.com`;
 
-    await request(app.getHttpServer()).post('/auth/signup').send({ email: second }).expect(200);
+    await request(app.getHttpServer()).post('/v1/auth/signup').send({ email: second }).expect(200);
     const sentCode = code;
 
     await request(app.getHttpServer())
-      .post('/auth/verify-email')
+      .post('/v1/auth/verify-email')
       .send({ email: second, code: sentCode === '000000' ? '000001' : '000000' })
       .expect(400);
 
     const secondVerify = await request(app.getHttpServer())
-      .post('/auth/verify-email')
+      .post('/v1/auth/verify-email')
       .send({ email: second, code: sentCode })
       .expect(200);
 
     await request(app.getHttpServer())
-      .post('/auth/verify-email')
+      .post('/v1/auth/verify-email')
       .send({ email: second, code: sentCode })
       .expect(400);
 
     // verify-email opened a session for `second`; revoke it so Redis stays clean.
     const setCookie = secondVerify.headers['set-cookie'] as unknown as string[];
     await request(app.getHttpServer())
-      .post('/auth/logout')
+      .post('/v1/auth/logout')
       .set('Cookie', setCookie[0].split(';')[0])
       .expect(204);
 
@@ -142,12 +143,12 @@ describe('Auth (e2e)', () => {
 
   it('validates the request body', async () => {
     await request(app.getHttpServer())
-      .post('/auth/signup')
+      .post('/v1/auth/signup')
       .send({ email: 'not-an-email' })
       .expect(400);
 
     await request(app.getHttpServer())
-      .post('/auth/signup')
+      .post('/v1/auth/signup')
       .send({})
       .expect(400);
   });

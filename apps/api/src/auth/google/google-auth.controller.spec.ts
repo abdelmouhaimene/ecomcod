@@ -7,9 +7,9 @@ import {
   type GoogleAuthError,
 } from './google-auth.controller.js';
 import type { GoogleOAuthService } from './google-oauth.service.js';
-import { SESSION_COOKIE, type SessionService } from './session.service.js';
-import type { UsersService } from '../users/users.service.js';
-import type { User } from '../users/entities/user.entity.js';
+import { SESSION_COOKIE, type SessionService } from '../shared/session.service.js';
+import type { UsersService } from '../../users/users.service.js';
+import type { User } from '../../users/entities/user.entity.js';
 
 const config = {
   get: (key: string) => (key === 'FRONTEND_URL' ? 'http://localhost:3000' : undefined),

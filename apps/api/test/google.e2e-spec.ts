@@ -1,4 +1,4 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
@@ -38,6 +38,7 @@ describe('Google OAuth (e2e)', () => {
     const moduleFixture = await Test.createTestingModule({ imports: [AppModule] }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
     app.use(cookieParser());
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
@@ -139,7 +140,7 @@ describe('Google OAuth (e2e)', () => {
     expect(cookie).not.toContain('fake-access-token');
 
     const me = await request(app.getHttpServer())
-      .get('/auth/me')
+      .get('/v1/auth/me')
       .set('Cookie', cookie)
       .expect(200);
 
@@ -161,7 +162,7 @@ describe('Google OAuth (e2e)', () => {
     );
 
     await request(app.getHttpServer())
-      .post('/auth/logout')
+      .post('/v1/auth/logout')
       .set('Cookie', cookie)
       .expect(204);
   });
@@ -180,8 +181,8 @@ describe('Google OAuth (e2e)', () => {
     expect(callback.headers.location).toBe('http://localhost:3000/');
     const cookie = sessionCookie(callback);
 
-    await request(app.getHttpServer()).get('/auth/me').set('Cookie', cookie).expect(200);
-    await request(app.getHttpServer()).post('/auth/logout').set('Cookie', cookie).expect(204);
+    await request(app.getHttpServer()).get('/v1/auth/me').set('Cookie', cookie).expect(200);
+    await request(app.getHttpServer()).post('/v1/auth/logout').set('Cookie', cookie).expect(204);
   });
 
   it('refuses an unverified Google email', async (ctx) => {

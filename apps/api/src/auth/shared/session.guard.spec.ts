@@ -1,6 +1,6 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import type { User } from '../users/entities/user.entity.js';
-import { UsersService } from '../users/users.service.js';
+import type { User } from '../../users/entities/user.entity.js';
+import { UsersService } from '../../users/users.service.js';
 import { SessionGuard, type RequestWithUser } from './session.guard.js';
 import { SessionService } from './session.service.js';
 

@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import type { User } from '../users/entities/user.entity.js';
+import type { User } from '../../users/entities/user.entity.js';
 import type { RequestWithUser } from './session.guard.js';
 
 /** Injects the user resolved by SessionGuard. */

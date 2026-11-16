@@ -2,8 +2,8 @@ import { Inject, Injectable, Logger, ServiceUnavailableException } from '@nestjs
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'node:crypto';
 import type { Redis } from 'ioredis';
-import { REDIS_CLIENT } from '../redis/redis.module.js';
-import type { GoogleIdentity } from '../users/users.service.js';
+import { REDIS_CLIENT } from '../../redis/redis.module.js';
+import type { GoogleIdentity } from '../../users/users.service.js';
 
 const AUTHORIZE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';

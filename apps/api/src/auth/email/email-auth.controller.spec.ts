@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Request, Response } from 'express';
-import { AuthController } from './auth.controller.js';
-import { AuthService } from './auth.service.js';
-import { SESSION_COOKIE, SessionService } from './session.service.js';
-import { UsersService } from '../users/users.service.js';
-import type { User } from '../users/entities/user.entity.js';
+import { EmailAuthController } from './email-auth.controller.js';
+import { EmailAuthService } from './email-auth.service.js';
+import { SESSION_COOKIE, SessionService } from '../shared/session.service.js';
+import { UsersService } from '../../users/users.service.js';
+import type { User } from '../../users/entities/user.entity.js';
 
-describe('AuthController', () => {
-  let controller: AuthController;
+describe('EmailAuthController', () => {
+  let controller: EmailAuthController;
   let authService: {
     signup: ReturnType<typeof vi.fn>;
     verifyEmail: ReturnType<typeof vi.fn>;
@@ -32,15 +32,15 @@ describe('AuthController', () => {
     users = { toPublic: vi.fn((user: unknown) => user) };
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
+      controllers: [EmailAuthController],
       providers: [
-        { provide: AuthService, useValue: authService },
+        { provide: EmailAuthService, useValue: authService },
         { provide: SessionService, useValue: sessions },
         { provide: UsersService, useValue: users },
       ],
     }).compile();
 
-    controller = module.get<AuthController>(AuthController);
+    controller = module.get<EmailAuthController>(EmailAuthController);
   });
 
   it('should be defined', () => {

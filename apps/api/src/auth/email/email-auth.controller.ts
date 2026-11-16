@@ -10,19 +10,19 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { AuthService } from './auth.service.js';
+import { EmailAuthService } from './email-auth.service.js';
 import { SignUpDto } from './dto/signup.dto.js';
 import { VerifyEmailDto } from './dto/verify-email.dto.js';
-import { SESSION_COOKIE, SessionService } from './session.service.js';
-import { SessionGuard, type RequestWithUser } from './session.guard.js';
-import { CurrentUser } from './current-user.decorator.js';
-import { UsersService } from '../users/users.service.js';
-import type { User } from '../users/entities/user.entity.js';
+import { SESSION_COOKIE, SessionService } from '../shared/session.service.js';
+import { SessionGuard, type RequestWithUser } from '../shared/session.guard.js';
+import { CurrentUser } from '../shared/current-user.decorator.js';
+import { UsersService } from '../../users/users.service.js';
+import type { User } from '../../users/entities/user.entity.js';
 
-@Controller('auth')
-export class AuthController {
+@Controller({ path: 'auth', version: '1' })
+export class EmailAuthController {
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: EmailAuthService,
     private readonly sessions: SessionService,
     private readonly users: UsersService,
   ) { }

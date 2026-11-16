@@ -1,8 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
-import { AuthService } from './auth.service.js';
+import { EmailAuthService } from './email-auth.service.js';
 import { EmailDomainService } from './email-domain.service.js';
 import { OtpService } from './otp.service.js';
-import { UsersService } from '../users/users.service.js';
+import { UsersService } from '../../users/users.service.js';
 
 async function rejected(promise: Promise<unknown>): Promise<unknown> {
   try {
@@ -13,8 +13,8 @@ async function rejected(promise: Promise<unknown>): Promise<unknown> {
   throw new Error('Expected the promise to reject');
 }
 
-describe('AuthService', () => {
-  let service: AuthService;
+describe('EmailAuthService', () => {
+  let service: EmailAuthService;
   let otp: {
     requestCode: ReturnType<typeof vi.fn>;
     verifyCode: ReturnType<typeof vi.fn>;
@@ -36,7 +36,7 @@ describe('AuthService', () => {
       toPublic: vi.fn((user: unknown) => user),
     };
 
-    service = new AuthService(
+    service = new EmailAuthService(
       otp as unknown as OtpService,
       emailDomain as unknown as EmailDomainService,
       users as unknown as UsersService,

@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = React.useCallback(async () => {
     try {
-      const me = await apiFetch<AuthUser>('/auth/me');
+      const me = await apiFetch<AuthUser>('/v1/auth/me');
       setUser(me);
       setStatus('authenticated');
     } catch {
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = React.useCallback(async () => {
     try {
-      await apiFetch<void>('/auth/logout', { method: 'POST' });
+      await apiFetch<void>('/v1/auth/logout', { method: 'POST' });
     } catch {
       // Even if the API is unreachable, drop the local state.
     } finally {

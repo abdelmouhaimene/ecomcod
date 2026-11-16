@@ -113,7 +113,7 @@ export function LoginForm() {
     setBusy('send');
     setError(null);
     try {
-      await apiFetch('/auth/signup', { method: 'POST', body: { email: address } });
+      await apiFetch('/v1/auth/signup', { method: 'POST', body: { email: address } });
       setSentTo(address);
       setCode('');
       setStep('code');
@@ -152,7 +152,7 @@ export function LoginForm() {
     setBusy('verify');
     setError(null);
     try {
-      await apiFetch('/auth/verify-email', {
+      await apiFetch('/v1/auth/verify-email', {
         method: 'POST',
         body: { email: sentTo, code },
       });

@@ -5,12 +5,13 @@ import {
   Query,
   Res,
   ServiceUnavailableException,
+  VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { GoogleOAuthService, type GoogleState } from './google-oauth.service.js';
-import { SESSION_COOKIE, SessionService } from './session.service.js';
-import { UsersService } from '../users/users.service.js';
+import { SESSION_COOKIE, SessionService } from '../shared/session.service.js';
+import { UsersService } from '../../users/users.service.js';
 
 export type GoogleAuthError =
   | 'google_denied'
@@ -35,7 +36,7 @@ export function safeRedirectPath(value: unknown): string {
   return value;
 }
 
-@Controller(['auth', 'api/auth'])
+@Controller({ path: ['auth', 'api/auth'], version: VERSION_NEUTRAL })
 export class GoogleAuthController {
   private readonly logger = new Logger(GoogleAuthController.name);
   private readonly frontendUrl: string;

@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomInt, createHmac, timingSafeEqual } from 'node:crypto';
 import { Redis } from 'ioredis';
 import { MailService } from './mail.service.js';
-import { REDIS_CLIENT } from '../redis/redis.module.js';
+import { REDIS_CLIENT } from '../../redis/redis.module.js';
 
 const CODE_TTL_S = 10 * 60;
 const RESEND_COOLDOWN_S = 60;

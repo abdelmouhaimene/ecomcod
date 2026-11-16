@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { Redis } from 'ioredis';
 import type { CookieOptions } from 'express';
-import { REDIS_CLIENT } from '../redis/redis.module.js';
+import { REDIS_CLIENT } from '../../redis/redis.module.js';
 
 export const SESSION_COOKIE = 'session';
 

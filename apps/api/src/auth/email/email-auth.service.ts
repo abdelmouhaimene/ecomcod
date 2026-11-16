@@ -4,10 +4,10 @@ import { SignUpDto } from './dto/signup.dto.js';
 import { VerifyEmailDto } from './dto/verify-email.dto.js';
 import { EmailDomainService } from './email-domain.service.js';
 import { OtpService } from './otp.service.js';
-import { UsersService } from '../users/users.service.js';
+import { UsersService } from '../../users/users.service.js';
 
 @Injectable()
-export class AuthService {
+export class EmailAuthService {
   constructor(
     private readonly otp: OtpService,
     private readonly emailDomain: EmailDomainService,
