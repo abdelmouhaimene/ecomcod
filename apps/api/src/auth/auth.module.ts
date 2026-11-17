@@ -6,12 +6,11 @@ import { MailService } from './email/mail.service.js';
 import { OtpService } from './email/otp.service.js';
 import { EmailDomainService } from './email/email-domain.service.js';
 import { GoogleOAuthService } from './google/google-oauth.service.js';
-import { SessionService } from './shared/session.service.js';
-import { SessionGuard } from './shared/session.guard.js';
+import { SessionModule } from './shared/session.module.js';
 import { UsersModule } from '../users/users.module.js';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, SessionModule],
   controllers: [EmailAuthController, GoogleAuthController],
   providers: [
     EmailAuthService,
@@ -19,8 +18,7 @@ import { UsersModule } from '../users/users.module.js';
     MailService,
     EmailDomainService,
     GoogleOAuthService,
-    SessionService,
-    SessionGuard,
   ],
+  exports: [SessionModule],
 })
 export class AuthModule { }

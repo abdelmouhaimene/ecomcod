@@ -43,7 +43,7 @@ describe('OtpService', () => {
   let service: OtpService;
 
   const email = 'user@example.com';
-  const key = `otp:${email}`;
+  const key = `otp:signup:${email}`;
 
   function lastCode(): string {
     const calls = mail.sendVerificationCode.mock.calls;
@@ -80,7 +80,7 @@ describe('OtpService', () => {
     expect(data.hash).toMatch(/^[a-f0-9]{64}$/);
     expect(data.hash).not.toContain(code as string);
 
-    expect(redis.set).toHaveBeenCalledWith(`otp:cooldown:${email}`, '1', 'EX', 60, 'NX');
+    expect(redis.set).toHaveBeenCalledWith(`otp:cooldown:signup:${email}`, '1', 'EX', 60, 'NX');
     expect(redis.set).toHaveBeenCalledWith(key, expect.any(String), 'EX', CODE_TTL_S);
   });
 
@@ -133,5 +133,19 @@ describe('OtpService', () => {
 
     const reused = await rejected(service.verifyCode(email, code));
     expect(reused).toBeInstanceOf(BadRequestException);
+  });
+
+  it('keeps signup and reset codes in separate namespaces', async () => {
+    await service.requestCode(email, 'reset');
+    const code = lastCode();
+
+    expect(redis.store.has(`otp:reset:${email}`)).toBe(true);
+    expect(redis.store.has(key)).toBe(false);
+
+    // A reset code cannot be used to confirm a signup.
+    const wrongPurpose = await rejected(service.verifyCode(email, code, 'signup'));
+    expect(wrongPurpose).toBeInstanceOf(BadRequestException);
+
+    await expect(service.verifyCode(email, code, 'reset')).resolves.toBeUndefined();
   });
 });

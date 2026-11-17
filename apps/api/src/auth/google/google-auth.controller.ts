@@ -90,8 +90,8 @@ export class GoogleAuthController {
         return this.fail(res, 'account_disabled', state);
       }
 
-      const { token, maxAge } = await this.sessions.create(user.id);
-      res.cookie(SESSION_COOKIE, token, { ...this.sessions.cookieOptions, maxAge });
+      const session = await this.sessions.create(user.id, true);
+      res.cookie(SESSION_COOKIE, session.token, this.sessions.cookieFor(session));
 
       res.redirect(this.frontendUrlFor(state.redirect));
     } catch (error) {

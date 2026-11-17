@@ -12,6 +12,8 @@ export interface AuthUser {
   isActive: boolean;
   emailVerifiedAt: string | null;
   createdAt: string;
+  /** False for Google-only accounts (they cannot create a password). */
+  hasPassword: boolean;
 }
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';

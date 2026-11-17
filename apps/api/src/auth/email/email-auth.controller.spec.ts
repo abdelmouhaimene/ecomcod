@@ -11,25 +11,45 @@ describe('EmailAuthController', () => {
   let authService: {
     signup: ReturnType<typeof vi.fn>;
     verifyEmail: ReturnType<typeof vi.fn>;
+    login: ReturnType<typeof vi.fn>;
+    forgotPassword: ReturnType<typeof vi.fn>;
+    resetPassword: ReturnType<typeof vi.fn>;
+    changePassword: ReturnType<typeof vi.fn>;
   };
   let sessions: {
     create: ReturnType<typeof vi.fn>;
+    cookieFor: ReturnType<typeof vi.fn>;
     destroy: ReturnType<typeof vi.fn>;
     cookieOptions: Record<string, unknown>;
   };
-  let users: { toPublic: ReturnType<typeof vi.fn> };
+  let users: {
+    findByIdWithPassword: ReturnType<typeof vi.fn>;
+    toMe: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     authService = {
       signup: vi.fn(async () => undefined),
       verifyEmail: vi.fn(async () => undefined),
+      login: vi.fn(async () => undefined),
+      forgotPassword: vi.fn(async () => undefined),
+      resetPassword: vi.fn(async () => undefined),
+      changePassword: vi.fn(async () => undefined),
     };
     sessions = {
       create: vi.fn(async () => ({ token: 'token-1', maxAge: 604800000 })),
+      cookieFor: vi.fn((session: { maxAge: number | null }) => ({
+        httpOnly: true,
+        path: '/',
+        ...(session.maxAge === null ? {} : { maxAge: session.maxAge }),
+      })),
       destroy: vi.fn(async () => undefined),
       cookieOptions: { httpOnly: true, path: '/' },
     };
-    users = { toPublic: vi.fn((user: unknown) => user) };
+    users = {
+      findByIdWithPassword: vi.fn(async () => null),
+      toMe: vi.fn((user: unknown) => user),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EmailAuthController],
@@ -48,12 +68,15 @@ describe('EmailAuthController', () => {
   });
 
   it('delegates signup to the service', async () => {
-    await controller.signup({ email: 'someone@gmail.com' });
+    await controller.signup({ email: 'someone@gmail.com', password: 'secret123' });
 
-    expect(authService.signup).toHaveBeenCalledWith({ email: 'someone@gmail.com' });
+    expect(authService.signup).toHaveBeenCalledWith({
+      email: 'someone@gmail.com',
+      password: 'secret123',
+    });
   });
 
-  it('sets the session cookie after verification', async () => {
+  it('creates the account and a remembered session after verification', async () => {
     const user = { id: 'u1', email: 'someone@gmail.com' } as User;
     const result = { verified: true, user };
     authService.verifyEmail.mockResolvedValueOnce(result);
@@ -64,7 +87,7 @@ describe('EmailAuthController', () => {
       res as unknown as Response,
     );
 
-    expect(sessions.create).toHaveBeenCalledWith('u1');
+    expect(sessions.create).toHaveBeenCalledWith('u1', true);
     expect(res.cookie).toHaveBeenCalledWith(SESSION_COOKIE, 'token-1', {
       httpOnly: true,
       path: '/',
@@ -73,12 +96,87 @@ describe('EmailAuthController', () => {
     expect(returned).toBe(result);
   });
 
-  it('returns the public user for /me', () => {
-    const user = { id: 'u1' } as User;
-    users.toPublic.mockReturnValueOnce({ id: 'u1' });
+  it('creates a persistent session when remember me is checked', async () => {
+    const user = { id: 'u1', email: 'someone@gmail.com' } as User;
+    authService.login.mockResolvedValueOnce({ user });
+    const res = { cookie: vi.fn() };
 
-    expect(controller.me(user)).toEqual({ id: 'u1' });
-    expect(users.toPublic).toHaveBeenCalledWith(user);
+    await controller.login(
+      { email: 'someone@gmail.com', password: 'secret123', rememberMe: true },
+      res as unknown as Response,
+    );
+
+    expect(sessions.create).toHaveBeenCalledWith('u1', true);
+    expect(res.cookie).toHaveBeenCalledWith(SESSION_COOKIE, 'token-1', {
+      httpOnly: true,
+      path: '/',
+      maxAge: 604800000,
+    });
+  });
+
+  it('creates a browser-session cookie when remember me is unchecked', async () => {
+    const user = { id: 'u1', email: 'someone@gmail.com' } as User;
+    authService.login.mockResolvedValueOnce({ user });
+    sessions.create.mockResolvedValueOnce({ token: 'token-1', maxAge: null });
+    const res = { cookie: vi.fn() };
+
+    await controller.login(
+      { email: 'someone@gmail.com', password: 'secret123' },
+      res as unknown as Response,
+    );
+
+    expect(sessions.create).toHaveBeenCalledWith('u1', false);
+    expect(res.cookie).toHaveBeenCalledWith(SESSION_COOKIE, 'token-1', {
+      httpOnly: true,
+      path: '/',
+    });
+  });
+
+  it('delegates forgot-password without signing in', async () => {
+    authService.forgotPassword.mockResolvedValueOnce({ message: 'sent' });
+
+    const result = await controller.forgotPassword({ email: 'someone@gmail.com' });
+
+    expect(authService.forgotPassword).toHaveBeenCalledWith({ email: 'someone@gmail.com' });
+    expect(result).toEqual({ message: 'sent' });
+    expect(sessions.create).not.toHaveBeenCalled();
+  });
+
+  it('signs the user in after a password reset', async () => {
+    const user = { id: 'u1', email: 'someone@gmail.com' } as User;
+    authService.resetPassword.mockResolvedValueOnce({ user });
+    sessions.create.mockResolvedValueOnce({ token: 'token-1', maxAge: null });
+    const res = { cookie: vi.fn() };
+
+    await controller.resetPassword(
+      { email: 'someone@gmail.com', code: '123456', password: 'newsecret456' },
+      res as unknown as Response,
+    );
+
+    expect(sessions.create).toHaveBeenCalledWith('u1', false);
+    expect(res.cookie).toHaveBeenCalledWith(SESSION_COOKIE, 'token-1', {
+      httpOnly: true,
+      path: '/',
+    });
+  });
+
+  it('returns the account capabilities for /me', async () => {
+    const stored = { id: 'u1', email: 'someone@gmail.com', password: 'hash' } as unknown as User;
+    const current = { id: 'u1' } as User;
+    users.findByIdWithPassword.mockResolvedValueOnce(stored);
+    users.toMe.mockReturnValueOnce({ id: 'u1', hasPassword: true });
+
+    await expect(controller.me(current)).resolves.toEqual({ id: 'u1', hasPassword: true });
+    expect(users.findByIdWithPassword).toHaveBeenCalledWith('u1');
+    expect(users.toMe).toHaveBeenCalledWith(stored);
+  });
+
+  it('still returns /me when the full row cannot be loaded', async () => {
+    const current = { id: 'u1' } as User;
+    users.toMe.mockReturnValueOnce({ id: 'u1', hasPassword: false });
+
+    await expect(controller.me(current)).resolves.toEqual({ id: 'u1', hasPassword: false });
+    expect(users.toMe).toHaveBeenCalledWith(current);
   });
 
   it('destroys the session and clears the cookie on logout', async () => {

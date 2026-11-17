@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller.js';
 import { UsersService } from './users.service.js';
+import { SessionService } from '../auth/shared/session.service.js';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -12,6 +13,10 @@ describe('UsersController', () => {
         {
           provide: UsersService,
           useValue: {},
+        },
+        {
+          provide: SessionService,
+          useValue: { cookieOptions: { httpOnly: true, path: '/' } },
         },
       ],
     }).compile();

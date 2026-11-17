@@ -18,7 +18,8 @@ export const configValidationSchema = Joi.object({
 
   OTP_SECRET: Joi.string().min(16).required(),
 
-  SESSION_TTL_S: Joi.number().integer().min(60).default(604800),
+  SESSION_TTL_S: Joi.number().integer().min(60).default(2592000),
+  SESSION_SHORT_TTL_S: Joi.number().integer().min(60).default(86400),
   CORS_ORIGINS: Joi.string().default('http://localhost:3000,http://localhost:3001'),
 
   // Optional: Google login is disabled when these are empty.

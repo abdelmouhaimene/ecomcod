@@ -87,6 +87,15 @@ export function AccountMenu() {
             </p>
           )}
 
+          <Link
+            href="/profile"
+            onClick={() => setOpen(false)}
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-outline-variant/60 px-3 py-2 font-label-caps text-[10px] uppercase tracking-[0.14em] text-on-surface-variant transition-colors hover:border-primary-container/60 hover:text-primary"
+          >
+            <span className="material-symbols-outlined text-[15px]">person</span>
+            {t('profileTitle')}
+          </Link>
+
           <button
             type="button"
             onClick={signOut}

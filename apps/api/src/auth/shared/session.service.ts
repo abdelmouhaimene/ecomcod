@@ -7,12 +7,21 @@ import { REDIS_CLIENT } from '../../redis/redis.module.js';
 
 export const SESSION_COOKIE = 'session';
 
-/** 7 days, in seconds. Override with SESSION_TTL_S. */
-const DEFAULT_TTL_S = 7 * 24 * 60 * 60;
+/** 30 days, in seconds. Override with SESSION_TTL_S. */
+const DEFAULT_TTL_S = 30 * 24 * 60 * 60;
+/** 1 day, in seconds. Used when "remember me" is unchecked. Override with SESSION_SHORT_TTL_S. */
+const DEFAULT_SHORT_TTL_S = 24 * 60 * 60;
+
+export interface CreatedSession {
+    token: string;
+    /** `null` for browser-session cookies (no Max-Age). */
+    maxAge: number | null;
+}
 
 @Injectable()
 export class SessionService {
     private readonly ttlS: number;
+    private readonly shortTtlS: number;
 
     constructor(
         @Inject(REDIS_CLIENT) private readonly redis: Redis,
@@ -20,6 +29,12 @@ export class SessionService {
     ) {
         const configured = Number(this.config.get('SESSION_TTL_S'));
         this.ttlS = Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_TTL_S;
+
+        const configuredShort = Number(this.config.get('SESSION_SHORT_TTL_S'));
+        this.shortTtlS =
+            Number.isFinite(configuredShort) && configuredShort > 0
+                ? configuredShort
+                : DEFAULT_SHORT_TTL_S;
     }
 
     /** Only a hash of the token is stored, so a Redis leak cannot be replayed. */
@@ -27,10 +42,22 @@ export class SessionService {
         return `sess:${createHash('sha256').update(token).digest('hex')}`;
     }
 
-    async create(userId: string): Promise<{ token: string; maxAge: number }> {
+    /**
+     * Creates a session. With `remember` the cookie is persistent (Max-Age),
+     * otherwise it is a browser-session cookie and expires server-side sooner.
+     */
+    async create(userId: string, remember = false): Promise<CreatedSession> {
+        const ttlS = remember ? this.ttlS : this.shortTtlS;
         const token = randomBytes(32).toString('base64url');
-        await this.redis.set(this.key(token), userId, 'EX', this.ttlS);
-        return { token, maxAge: this.ttlS * 1000 };
+        await this.redis.set(this.key(token), userId, 'EX', ttlS);
+        return { token, maxAge: remember ? ttlS * 1000 : null };
+    }
+
+    /** Cookie options for the given session, adding Max-Age only when remembered. */
+    cookieFor(session: CreatedSession): CookieOptions {
+        return session.maxAge === null
+            ? { ...this.cookieOptions }
+            : { ...this.cookieOptions, maxAge: session.maxAge };
     }
 
     async getUserId(token: string | undefined): Promise<string | null> {

@@ -8,6 +8,11 @@ export type PublicUser = Pick<
     'id' | 'email' | 'fullName' | 'phoneNumber' | 'isActive' | 'emailVerifiedAt' | 'createdAt'
 >;
 
+/** Shape returned by GET /auth/me: public data plus the auth capabilities. */
+export interface MeUser extends PublicUser {
+    hasPassword: boolean;
+}
+
 /** Subset of Google's userinfo response we rely on. */
 export interface GoogleIdentity {
     googleId: string;
@@ -25,6 +30,71 @@ export class UsersService {
 
     async findById(id: string): Promise<User | null> {
         return this.users.findOne({ where: { id } });
+    }
+
+    async findAll(): Promise<User[]> {
+        return this.users.find({ order: { createdAt: 'DESC' } });
+    }
+
+    async findByIdWithPassword(id: string): Promise<User | null> {
+        return this.users.findOne({
+            where: { id },
+            select: {
+                id: true,
+                fullName: true,
+                phoneNumber: true,
+                email: true,
+                googleId: true,
+                password: true,
+                emailVerifiedAt: true,
+                isActive: true,
+                lastLoginAt: true,
+                createdAt: true,
+            },
+        });
+    }
+
+    async findByEmail(rawEmail: string): Promise<User | null> {
+        const email = rawEmail.trim().toLowerCase();
+        // `password` is `select: false` by default, so request it explicitly.
+        return this.users.findOne({
+            where: { email },
+            select: {
+                id: true,
+                fullName: true,
+                phoneNumber: true,
+                email: true,
+                googleId: true,
+                password: true,
+                emailVerifiedAt: true,
+                isActive: true,
+                lastLoginAt: true,
+                createdAt: true,
+            },
+        });
+    }
+
+    /**
+     * Creates a real (password-backed) account. Only call this once the email
+     * has been verified and a password has been chosen.
+     */
+    async createWithPassword(
+        rawEmail: string,
+        passwordHash: string,
+        fullName: string | null = null,
+    ): Promise<User> {
+        const email = rawEmail.trim().toLowerCase();
+        const user = this.users.create({ email, password: passwordHash, fullName, emailVerifiedAt: new Date() });
+
+        try {
+            return await this.users.save(user);
+        } catch (error) {
+            if ((error as { code?: string }).code === '23505') {
+                const raced = await this.users.findOne({ where: { email } });
+                if (raced) return raced;
+            }
+            throw error;
+        }
     }
 
     /**
@@ -102,6 +172,11 @@ export class UsersService {
         }
     }
 
+    /** Persists mutable fields (e.g. lastLoginAt) for an existing user. */
+    async save(user: User): Promise<User> {
+        return this.users.save(user);
+    }
+
     /** Strips fields that must never leave the API (e.g. password). */
     toPublic(user: User): PublicUser {
         return {
@@ -113,5 +188,10 @@ export class UsersService {
             emailVerifiedAt: user.emailVerifiedAt,
             createdAt: user.createdAt,
         };
+    }
+
+    /** Public data for the account owner, including auth capabilities. */
+    toMe(user: User): MeUser {
+        return { ...this.toPublic(user), hasPassword: Boolean(user.password) };
     }
 }

@@ -29,7 +29,11 @@ describe('GoogleAuthController', () => {
     exchangeCode: ReturnType<typeof vi.fn>;
     getProfile: ReturnType<typeof vi.fn>;
   };
-  let sessions: { create: ReturnType<typeof vi.fn>; cookieOptions: Record<string, unknown> };
+  let sessions: {
+    create: ReturnType<typeof vi.fn>;
+    cookieFor: ReturnType<typeof vi.fn>;
+    cookieOptions: Record<string, unknown>;
+  };
   let users: { findOrCreateByGoogle: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -48,6 +52,11 @@ describe('GoogleAuthController', () => {
     };
     sessions = {
       create: vi.fn(async () => ({ token: 'session-token', maxAge: 604800000 })),
+      cookieFor: vi.fn((session: { maxAge: number | null }) => ({
+        httpOnly: true,
+        path: '/',
+        ...(session.maxAge === null ? {} : { maxAge: session.maxAge }),
+      })),
       cookieOptions: { httpOnly: true, path: '/' },
     };
     users = {
@@ -110,7 +119,7 @@ describe('GoogleAuthController', () => {
       fullName: 'Jane Doe',
       emailVerified: true,
     });
-    expect(sessions.create).toHaveBeenCalledWith('u1');
+    expect(sessions.create).toHaveBeenCalledWith('u1', true);
     expect(res.cookie).toHaveBeenCalledWith(SESSION_COOKIE, 'session-token', {
       httpOnly: true,
       path: '/',
