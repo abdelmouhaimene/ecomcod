@@ -184,7 +184,7 @@ export class EmailAuthService {
         }
 
         const user = await this.users.findByEmail(email);
-        if (user && user.isActive && user.password) {
+        if (user && user.isActive && !user.googleId) {
             await this.otp.requestCode(email, 'reset');
         }
 
@@ -206,7 +206,7 @@ export class EmailAuthService {
             throw new UnauthorizedException('This account has been disabled');
         }
 
-        if (!user.password) {
+        if (user.googleId) {
             throw new BadRequestException(
                 'This account uses Google sign-in and cannot set a password.',
             );
