@@ -4,6 +4,7 @@ import {
   type AdminLoginResponse,
   type ApiErrorResponse,
   type ChangeAdminPasswordPayload,
+  type CreateAdminPayload,
   type MessageResponse,
   type PublicAdmin,
 } from '@repo/types';
@@ -59,6 +60,10 @@ export const adminApi = {
     adminFetch<AdminLoginResponse>('/v1/admin/auth/login', { method: 'POST', body: payload }),
   me: () => adminFetch<PublicAdmin>('/v1/admin/auth/me'),
   list: () => adminFetch<PublicAdmin[]>('/v1/admin/admins'),
+  create: (payload: CreateAdminPayload) =>
+    adminFetch<PublicAdmin>('/v1/admin/admins', { method: 'POST', body: payload }),
+  remove: (id: string) =>
+    adminFetch<void>(`/v1/admin/admins/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   changePassword: (payload: ChangeAdminPasswordPayload) =>
     adminFetch<MessageResponse>('/v1/admin/auth/change-password', {
       method: 'POST',
