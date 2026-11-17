@@ -1,4 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import type { ApiErrorResponse } from '@repo/types';
 import type { Request, Response } from 'express';
 
 /**
@@ -29,12 +30,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const normalizedMessage = Array.isArray(message) ? message.join(' ') : String(message);
 
-    response.status(status).json({
+    const body: ApiErrorResponse = {
       statusCode: status,
       message: normalizedMessage,
       error: exception instanceof HttpException ? exception.name : 'InternalServerError',
       timestamp: new Date().toISOString(),
       path: request.url,
-    });
+    };
+
+    response.status(status).json(body);
   }
 }

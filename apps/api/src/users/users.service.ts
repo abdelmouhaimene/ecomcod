@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type { MeUser as MeUserShape, PublicUser as PublicUserShape } from '@repo/types';
 import { User } from './entities/user.entity.js';
 
-export type PublicUser = Pick<
-    User,
-    'id' | 'email' | 'fullName' | 'phoneNumber' | 'isActive' | 'emailVerifiedAt' | 'createdAt'
->;
-
-/** Shape returned by GET /auth/me: public data plus the auth capabilities. */
-export interface MeUser extends PublicUser {
-    hasPassword: boolean;
-}
+/** Shared wire contract, with real Dates while inside the API. */
+export type PublicUser = PublicUserShape<Date>;
+export type MeUser = MeUserShape<Date>;
 
 /** Subset of Google's userinfo response we rely on. */
 export interface GoogleIdentity {

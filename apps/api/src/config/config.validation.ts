@@ -22,6 +22,10 @@ export const configValidationSchema = Joi.object({
   SESSION_SHORT_TTL_S: Joi.number().integer().min(60).default(86400),
   CORS_ORIGINS: Joi.string().default('http://localhost:3000,http://localhost:3001'),
 
+  // Bootstrap credentials for the single system admin. Override in real deployments.
+  ADMIN_USERNAME: Joi.string().min(3).max(50).default('admin'),
+  ADMIN_PASSWORD: Joi.string().min(1).max(128).default('admin'),
+
   // Optional: Google login is disabled when these are empty.
   GOOGLE_CLIENT_ID: Joi.string().allow('').optional(),
   GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),

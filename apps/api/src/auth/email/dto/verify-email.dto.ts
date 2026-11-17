@@ -1,6 +1,7 @@
 import { IsEmail, IsString, Length, Matches } from 'class-validator';
+import type { VerifyEmailPayload } from '@repo/types';
 
-export class VerifyEmailDto {
+export class VerifyEmailDto implements VerifyEmailPayload {
     @IsEmail()
     @Length(3, 100)
     email: string;

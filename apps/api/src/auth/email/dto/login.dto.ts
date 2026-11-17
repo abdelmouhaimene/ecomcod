@@ -1,6 +1,7 @@
 import { IsBoolean, IsEmail, IsOptional, IsString, Length } from 'class-validator';
+import type { LoginPayload } from '@repo/types';
 
-export class LoginDto {
+export class LoginDto implements LoginPayload {
     @IsEmail()
     @Length(3, 100)
     email: string;

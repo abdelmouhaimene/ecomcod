@@ -1,5 +1,17 @@
 'use client';
 
+import type {
+  ForgotPasswordPayload,
+  ForgotPasswordResponse,
+  LoginPayload,
+  LoginResponse,
+  ResetPasswordPayload,
+  ResetPasswordResponse,
+  SignUpPayload,
+  SignUpResponse,
+  VerifyEmailPayload,
+  VerifyEmailResponse,
+} from '@repo/types';
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -149,13 +161,13 @@ export function LoginForm() {
     setBusy('signin');
     setError(null);
     try {
-      await apiFetch('/v1/auth/login', {
+      await apiFetch<LoginResponse>('/v1/auth/login', {
         method: 'POST',
         body: {
           email: signinEmail.trim().toLowerCase(),
           password: signinPassword,
           rememberMe,
-        },
+        } satisfies LoginPayload,
       });
       await refresh();
       router.push(targetPath);
@@ -179,9 +191,9 @@ export function LoginForm() {
     setBusy('forgot');
     setError(null);
     try {
-      await apiFetch('/v1/auth/forgot-password', {
+      await apiFetch<ForgotPasswordResponse>('/v1/auth/forgot-password', {
         method: 'POST',
-        body: { email: address },
+        body: { email: address } satisfies ForgotPasswordPayload,
       });
       setResetEmail(address);
       setResetCode('');
@@ -216,9 +228,13 @@ export function LoginForm() {
     setBusy('reset');
     setError(null);
     try {
-      await apiFetch('/v1/auth/reset-password', {
+      await apiFetch<ResetPasswordResponse>('/v1/auth/reset-password', {
         method: 'POST',
-        body: { email: resetEmail, code: resetCode, password: resetPassword },
+        body: {
+          email: resetEmail,
+          code: resetCode,
+          password: resetPassword,
+        } satisfies ResetPasswordPayload,
       });
       await refresh();
       router.push(targetPath);
@@ -233,9 +249,9 @@ export function LoginForm() {
     if (busy || cooldown > 0) return;
     setBusy('forgot');
     setError(null);
-    void apiFetch('/v1/auth/forgot-password', {
+    void apiFetch<ForgotPasswordResponse>('/v1/auth/forgot-password', {
       method: 'POST',
-      body: { email: resetEmail },
+      body: { email: resetEmail } satisfies ForgotPasswordPayload,
     })
       .then(() => setCooldown(60))
       .catch((cause) => setError(messageFor(cause, 'email')))
@@ -265,9 +281,9 @@ export function LoginForm() {
     setBusy('signup');
     setError(null);
     try {
-      await apiFetch('/v1/auth/signup', {
+      await apiFetch<SignUpResponse>('/v1/auth/signup', {
         method: 'POST',
-        body: { email: address, password: signupPassword },
+        body: { email: address, password: signupPassword } satisfies SignUpPayload,
       });
       setSentTo(address);
       setCode('');
@@ -292,9 +308,9 @@ export function LoginForm() {
     setBusy('verify');
     setError(null);
     try {
-      await apiFetch('/v1/auth/verify-email', {
+      await apiFetch<VerifyEmailResponse>('/v1/auth/verify-email', {
         method: 'POST',
-        body: { email: sentTo, code },
+        body: { email: sentTo, code } satisfies VerifyEmailPayload,
       });
       await refresh();
       router.push(targetPath);
@@ -309,9 +325,9 @@ export function LoginForm() {
     if (busy || cooldown > 0) return;
     setBusy('signup');
     setError(null);
-    void apiFetch('/v1/auth/signup', {
+    void apiFetch<SignUpResponse>('/v1/auth/signup', {
       method: 'POST',
-      body: { email: sentTo, password: signupPassword },
+      body: { email: sentTo, password: signupPassword } satisfies SignUpPayload,
     })
       .then(() => setCooldown(60))
       .catch((cause) => setError(messageFor(cause, 'email')))

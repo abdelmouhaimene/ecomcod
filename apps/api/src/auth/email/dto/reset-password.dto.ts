@@ -1,6 +1,7 @@
 import { IsEmail, IsString, Length, Matches } from 'class-validator';
+import type { ResetPasswordPayload } from '@repo/types';
 
-export class ResetPasswordDto {
+export class ResetPasswordDto implements ResetPasswordPayload {
     @IsEmail()
     @Length(3, 100)
     email: string;

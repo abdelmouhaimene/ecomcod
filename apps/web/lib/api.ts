@@ -1,3 +1,5 @@
+import type { ApiErrorResponse } from '@repo/types';
+
 /**
  * The browser talks to the Nest API directly. Cookies (including the httpOnly
  * session cookie) are only sent when `credentials: 'include'` is set, which is
@@ -23,11 +25,11 @@ export interface ApiFetchOptions extends Omit<RequestInit, 'body' | 'credentials
   body?: unknown;
 }
 
-/** Reads `{ message: string | string[] }` from a Nest error response. */
+/** Reads the shared `ApiErrorResponse.message` (or Nest's string[]) safely. */
 function messageFromBody(body: unknown): string | null {
   if (typeof body !== 'object' || body === null) return null;
 
-  const message = (body as { message?: unknown }).message;
+  const message: unknown = (body as Partial<ApiErrorResponse>).message;
   if (typeof message === 'string') return message;
   if (Array.isArray(message)) {
     const parts = message.filter((part): part is string => typeof part === 'string');

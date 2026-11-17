@@ -1,6 +1,7 @@
 import { IsString, Length } from 'class-validator';
+import type { ChangePasswordPayload } from '@repo/types';
 
-export class ChangePasswordDto {
+export class ChangePasswordDto implements ChangePasswordPayload {
     @IsString()
     @Length(1, 128)
     currentPassword: string;

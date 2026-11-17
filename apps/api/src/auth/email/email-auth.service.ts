@@ -1,3 +1,11 @@
+import type {
+    ChangePasswordResponse,
+    ForgotPasswordResponse,
+    LoginResponse,
+    ResetPasswordResponse,
+    SignUpResponse,
+    VerifyEmailResponse,
+} from '@repo/types';
 import {
     Injectable,
     BadRequestException,
@@ -44,7 +52,7 @@ export class EmailAuthService {
      * Step 1 of signup: validate the address, hash the password and keep the
      * whole registration in Redis for 10 minutes. No user row exists yet.
      */
-    async signup(dto: SignUpDto) {
+    async signup(dto: SignUpDto): Promise<SignUpResponse> {
         const email = dto.email.trim().toLowerCase();
 
         if (!mailchecker.isValid(email)) {
@@ -82,7 +90,7 @@ export class EmailAuthService {
      * Step 2 of signup: the code proves ownership of the address, so the
      * pending registration is written to Postgres and the account is live.
      */
-    async verifyEmail(dto: VerifyEmailDto) {
+    async verifyEmail(dto: VerifyEmailDto): Promise<VerifyEmailResponse<Date>> {
         const email = dto.email.trim().toLowerCase();
 
         await this.otp.verifyCode(email, dto.code, 'signup');
@@ -110,7 +118,7 @@ export class EmailAuthService {
     }
 
     /** Password-based login for accounts that have a password. */
-    async login(dto: LoginDto) {
+    async login(dto: LoginDto): Promise<LoginResponse<Date>> {
         const email = dto.email.trim().toLowerCase();
         const user = await this.users.findByEmail(email);
         if (!user) {
@@ -142,7 +150,7 @@ export class EmailAuthService {
     }
 
     /** Change the password of an existing password-backed account. */
-    async changePassword(userId: string, dto: ChangePasswordDto) {
+    async changePassword(userId: string, dto: ChangePasswordDto): Promise<ChangePasswordResponse> {
         const user = await this.users.findByIdWithPassword(userId);
         if (!user) {
             throw new BadRequestException('Account not found');
@@ -176,7 +184,7 @@ export class EmailAuthService {
      * Emails a reset code to password-backed accounts only. The answer never
      * reveals whether the address is registered.
      */
-    async forgotPassword(dto: ForgotPasswordDto) {
+    async forgotPassword(dto: ForgotPasswordDto): Promise<ForgotPasswordResponse> {
         const email = dto.email.trim().toLowerCase();
 
         if (!mailchecker.isValid(email)) {
@@ -192,7 +200,7 @@ export class EmailAuthService {
     }
 
     /** Exchanges a reset code for a new password. */
-    async resetPassword(dto: ResetPasswordDto) {
+    async resetPassword(dto: ResetPasswordDto): Promise<ResetPasswordResponse<Date>> {
         const email = dto.email.trim().toLowerCase();
 
         await this.otp.verifyCode(email, dto.code, 'reset');

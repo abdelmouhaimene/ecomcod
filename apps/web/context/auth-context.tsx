@@ -1,22 +1,10 @@
 'use client';
 
+import type { AuthStatus, AuthUser } from '@repo/types';
 import * as React from 'react';
 import { apiFetch } from '../lib/api';
 
-/** Public user shape returned by GET /auth/me (dates arrive as ISO strings). */
-export interface AuthUser {
-  id: string;
-  email: string;
-  fullName: string | null;
-  phoneNumber: string | null;
-  isActive: boolean;
-  emailVerifiedAt: string | null;
-  createdAt: string;
-  /** False for Google-only accounts (they cannot create a password). */
-  hasPassword: boolean;
-}
-
-export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
+export type { AuthStatus, AuthUser } from '@repo/types';
 
 interface AuthContextType {
   user: AuthUser | null;

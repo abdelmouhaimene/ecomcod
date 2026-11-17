@@ -1,6 +1,7 @@
 import { IsEmail, IsString, Length } from 'class-validator';
+import type { SignUpPayload } from '@repo/types';
 
-export class SignUpDto {
+export class SignUpDto implements SignUpPayload {
     @IsEmail()
     @Length(3, 100)
     email: string;

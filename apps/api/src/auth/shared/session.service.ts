@@ -6,6 +6,11 @@ import type { CookieOptions } from 'express';
 import { REDIS_CLIENT } from '../../redis/redis.module.js';
 
 export const SESSION_COOKIE = 'session';
+/** Admin sessions use their own cookie, so store and dashboard cannot clash. */
+export const ADMIN_SESSION_COOKIE = 'admin_session';
+
+/** Admin session values are prefixed so they can never resolve to a customer. */
+const ADMIN_SUBJECT_PREFIX = 'admin:';
 
 /** 30 days, in seconds. Override with SESSION_TTL_S. */
 const DEFAULT_TTL_S = 30 * 24 * 60 * 60;
@@ -47,9 +52,18 @@ export class SessionService {
      * otherwise it is a browser-session cookie and expires server-side sooner.
      */
     async create(userId: string, remember = false): Promise<CreatedSession> {
+        return this.createWithValue(userId, remember);
+    }
+
+    /** Creates a session whose subject is an admin rather than a customer. */
+    async createForAdmin(adminId: string, remember = false): Promise<CreatedSession> {
+        return this.createWithValue(`${ADMIN_SUBJECT_PREFIX}${adminId}`, remember);
+    }
+
+    private async createWithValue(value: string, remember: boolean): Promise<CreatedSession> {
         const ttlS = remember ? this.ttlS : this.shortTtlS;
         const token = randomBytes(32).toString('base64url');
-        await this.redis.set(this.key(token), userId, 'EX', ttlS);
+        await this.redis.set(this.key(token), value, 'EX', ttlS);
         return { token, maxAge: remember ? ttlS * 1000 : null };
     }
 
@@ -62,7 +76,17 @@ export class SessionService {
 
     async getUserId(token: string | undefined): Promise<string | null> {
         if (!token) return null;
-        return this.redis.get(this.key(token));
+        const value = await this.redis.get(this.key(token));
+        return value && !value.startsWith(ADMIN_SUBJECT_PREFIX) ? value : null;
+    }
+
+    /** Returns the admin id stored in a session, or null for a customer session. */
+    async getAdminId(token: string | undefined): Promise<string | null> {
+        if (!token) return null;
+        const value = await this.redis.get(this.key(token));
+        return value?.startsWith(ADMIN_SUBJECT_PREFIX)
+            ? value.slice(ADMIN_SUBJECT_PREFIX.length)
+            : null;
     }
 
     async destroy(token: string | undefined): Promise<void> {
