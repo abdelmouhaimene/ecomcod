@@ -59,6 +59,10 @@ export interface PublicProduct<TDate = string> {
     /** Sales counters; `realSolds` is recorded from sales, not by an admin. */
     fakeSolds: number;
     realSolds: number;
+    /** Current stock on hand; maintained by stock entries, not by product forms. */
+    quantity: number;
+    /** Weighted average purchase price (PMP/WAP); maintained by stock entries. */
+    PMP: number;
     categories: PublicCategory<TDate>[];
     images: PublicProductImage<TDate>[];
     variants: PublicProductVariant<TDate>[];

@@ -56,6 +56,16 @@ const navItems: NavItem[] = [
         ),
     },
     {
+        href: '/stock',
+        labelKey: 'navStock',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.5 8.5 12 4l8.5 4.5v7L12 20l-8.5-4.5z" />
+                <path d="M3.5 8.5 12 13l8.5-4.5M12 13v7M7.5 6.2l8.5 4.5" />
+            </svg>
+        ),
+    },
+    {
         href: '/admins',
         labelKey: 'navAdmins',
         systemOnly: true,
@@ -133,31 +143,36 @@ export function Sidebar(): React.JSX.Element {
             </nav>
 
             <div className="sidebar-footer">
-                {admin ? (
-                    <div className="sidebar-admin">
-                        <span className="avatar" aria-hidden="true">
-                            {initials(admin.username)}
-                        </span>
-                        <span className="admin-meta">
-                            <strong className="admin-name">{admin.username}</strong>
-                            <span className="admin-role">
-                                {t(`role${admin.role.charAt(0).toUpperCase()}${admin.role.slice(1)}` as TranslationKey)}
+                <div className="sidebar-profile">
+                    {admin ? (
+                        <div className="sidebar-admin">
+                            <span className="avatar" aria-hidden="true">
+                                {initials(admin.username)}
                             </span>
+                            <span className="admin-meta">
+                                <strong className="admin-name">{admin.username}</strong>
+                                <span className="admin-role">
+                                    {t(`role${admin.role.charAt(0).toUpperCase()}${admin.role.slice(1)}` as TranslationKey)}
+                                </span>
+                            </span>
+                        </div>
+                    ) : null}
+                    <button
+                        type="button"
+                        className="logout-button"
+                        onClick={() => void handleLogout()}
+                        disabled={isLoggingOut}
+                        title={t('logout')}
+                        aria-label={isLoggingOut ? t('loggingOut') : t('logout')}
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span className="nav-label">
+                            {isLoggingOut ? t('loggingOut') : t('logout')}
                         </span>
-                    </div>
-                ) : null}
-                <button
-                    type="button"
-                    className="logout-button"
-                    onClick={() => void handleLogout()}
-                    disabled={isLoggingOut}
-                    title={t('logout')}
-                >
-                    <span aria-hidden="true">↪</span>
-                    <span className="nav-label">
-                        {isLoggingOut ? t('loggingOut') : t('logout')}
-                    </span>
-                </button>
+                    </button>
+                </div>
             </div>
         </aside>
     );

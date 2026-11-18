@@ -10,6 +10,7 @@ function titleForPath(pathname: string): TranslationKey {
     if (pathname === '/clients') return 'navClients';
     if (pathname === '/products') return 'navProducts';
     if (pathname === '/categories') return 'navCategories';
+    if (pathname === '/stock') return 'navStock';
     if (pathname === '/admins') return 'navAdmins';
     if (pathname === '/change-password') return 'navChangePassword';
     return 'navOverview';
@@ -29,6 +30,7 @@ export function Topbar(): React.JSX.Element {
         <header className="topbar">
             <div className="topbar-heading">
                 <span className="topbar-eyebrow">{t('appName')}</span>
+                <span className="topbar-separator" aria-hidden="true">/</span>
                 <h1 className="topbar-title">{t(titleKey)}</h1>
             </div>
             <div className="topbar-actions">

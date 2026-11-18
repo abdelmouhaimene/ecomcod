@@ -11,7 +11,12 @@ import {
   type PublicAdmin,
   type PublicCategory,
   type PublicProduct,
+  type PublicStockEntry,
+  type PublicSupplier,
   type PublicUser,
+  type StockEntryFilter,
+  type StockEntryPayload,
+  type SupplierPayload,
   type UploadImageResponse,
 } from '@repo/types';
 
@@ -28,6 +33,11 @@ export type {
   PublicProduct,
   PublicProductImage,
   PublicProductVariant,
+  PublicStockEntry,
+  PublicSupplier,
+  StockEntryFilter,
+  StockEntryPayload,
+  SupplierPayload,
   UploadImageResponse,
 } from '@repo/types';
 
@@ -138,6 +148,35 @@ export const adminApi = {
     }),
   removeProduct: (id: string) =>
     adminFetch<void>(`/v1/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Suppliers (all active admins may read; system/manager may mutate).
+  listSuppliers: () => adminFetch<PublicSupplier[]>('/v1/admin/suppliers'),
+  createSupplier: (payload: SupplierPayload) =>
+    adminFetch<PublicSupplier>('/v1/admin/suppliers', { method: 'POST', body: payload }),
+  updateSupplier: (id: string, payload: SupplierPayload) =>
+    adminFetch<PublicSupplier>(`/v1/admin/suppliers/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: payload,
+    }),
+  removeSupplier: (id: string) =>
+    adminFetch<void>(`/v1/admin/suppliers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Stock entries (all active admins may read; system/manager may create; system may delete).
+  listStockEntries: (filter: StockEntryFilter = {}) => {
+    const params = new URLSearchParams();
+    if (filter.month !== undefined) params.set('month', String(filter.month));
+    if (filter.year !== undefined) params.set('year', String(filter.year));
+    if (filter.productId) params.set('productId', filter.productId);
+    if (filter.supplierId) params.set('supplierId', filter.supplierId);
+    const query = params.toString();
+    return adminFetch<PublicStockEntry[]>(
+      `/v1/admin/stock-entries${query ? `?${query}` : ''}`,
+    );
+  },
+  createStockEntry: (payload: StockEntryPayload) =>
+    adminFetch<PublicStockEntry>('/v1/admin/stock-entries', { method: 'POST', body: payload }),
+  removeStockEntry: (id: string) =>
+    adminFetch<void>(`/v1/admin/stock-entries/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   uploadImage: (file: File) => {
     const formData = new FormData();

@@ -22,6 +22,7 @@ import type { ProductVariant } from './product-variant.entity.js';
     '"fakeReviews" >= 0 AND "fakeReviews" <= 5 AND "realReviews" >= 0 AND "realReviews" <= 5',
 )
 @Check('CHK_products_counters', '"fakeSolds" >= 0 AND "realSolds" >= 0')
+@Check('CHK_products_stock', '"quantity" >= 0 AND "PMP" >= 0')
 export class Product {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -78,6 +79,20 @@ export class Product {
 
     @Column({ type: 'int', default: 0 })
     realSolds: number;
+
+    /** Stock on hand; only updated by stock entries. */
+    @Column({ type: 'int', default: 0 })
+    quantity: number;
+
+    /** Weighted average purchase price (PMP/WAP); only updated by stock entries. */
+    @Column({
+        type: 'numeric',
+        precision: 12,
+        scale: 2,
+        default: 0,
+        transformer: numericTransformer,
+    })
+    PMP: number;
 
     /** String targets avoid an ESM cycle between catalog entities. */
     @OneToMany('ProductCategory', 'product')

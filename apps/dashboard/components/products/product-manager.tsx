@@ -358,6 +358,7 @@ export function ProductManager(): React.JSX.Element {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
+    const integerFormatter = new Intl.NumberFormat(locale);
     const formatDate = (value: string) => dateFormatter.format(new Date(value));
 
     const resetForm = () => {
@@ -661,9 +662,15 @@ export function ProductManager(): React.JSX.Element {
                             </option>
                         ))}
                     </select>
-                    <span className="stat-note">
-                        {t('showingProducts')} {filteredProducts.length} / {products.length}
-                    </span>
+                    <div className="table-toolbar-meta">
+                        <span className="stat-note">
+                            {t('showingProducts')} {filteredProducts.length} / {products.length}
+                        </span>
+                        <span className="catalog-status">
+                            <span className="status-dot" aria-hidden="true" />
+                            {t('catalogLive')}
+                        </span>
+                    </div>
                 </div>
 
                 {loading ? (
@@ -698,40 +705,71 @@ export function ProductManager(): React.JSX.Element {
                                     <th scope="col">{t('columnRef')}</th>
                                     <th scope="col">{t('productColumn')}</th>
                                     <th scope="col">{t('columnPrice')}</th>
+                                    <th scope="col" className="column-center">{t('columnStock')}</th>
+                                    <th scope="col" className="column-right">{t('columnPmp')}</th>
                                     <th scope="col">{t('columnCategories')}</th>
-                                    <th scope="col">{t('columnImages')}</th>
-                                    <th scope="col">{t('columnVariants')}</th>
+                                    <th scope="col" className="column-center">{t('columnImages')}</th>
+                                    <th scope="col" className="column-center">{t('columnVariants')}</th>
                                     <th scope="col">{t('createdAt')}</th>
-                                    {canManage ? <th scope="col">{t('actions')}</th> : null}
+                                    {canManage ? <th scope="col" className="column-actions">{t('actions')}</th> : null}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredProducts.map((product) => (
                                     <tr key={product.id}>
                                         <td>
-                                            <strong>{product.ref}</strong>
+                                            <strong className="table-ref">{product.ref}</strong>
                                         </td>
                                         <td>
-                                            <span className="client-primary">{product.name}</span>
+                                            <span className="client-primary product-name">
+                                                {product.name}
+                                            </span>
                                             {product.subtitle ? (
-                                                <span className="client-secondary">
+                                                <span className="client-secondary product-subtitle">
                                                     {product.subtitle}
                                                 </span>
                                             ) : null}
                                         </td>
-                                        <td>{numberFormatter.format(product.price)}</td>
-                                        <td className="muted">
-                                            {product.categories.length === 0
-                                                ? '—'
-                                                : product.categories
-                                                      .map((category) => category.name)
-                                                      .join(', ')}
+                                        <td className="table-price">
+                                            {numberFormatter.format(product.price)}
                                         </td>
-                                        <td className="muted">{product.images.length}</td>
-                                        <td className="muted">{product.variants.length}</td>
-                                        <td className="muted">{formatDate(product.createdAt)}</td>
+                                        <td className="text-center">
+                                            <span className="count-badge">
+                                                {integerFormatter.format(product.quantity)}
+                                            </span>
+                                        </td>
+                                        <td className="table-price text-right">
+                                            {numberFormatter.format(product.PMP)}
+                                        </td>
+                                        <td>
+                                            <div className="category-tags">
+                                                {product.categories.length === 0 ? (
+                                                    <span className="muted">—</span>
+                                                ) : (
+                                                    product.categories.map((category) => (
+                                                        <span
+                                                            className="category-tag"
+                                                            key={category.id}
+                                                        >
+                                                            {category.name}
+                                                        </span>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="text-center">
+                                            <span className="count-badge">
+                                                {product.images.length}
+                                            </span>
+                                        </td>
+                                        <td className="muted text-center">
+                                            {product.variants.length}
+                                        </td>
+                                        <td className="muted table-date">
+                                            {formatDate(product.createdAt)}
+                                        </td>
                                         {canManage ? (
-                                            <td>
+                                            <td className="table-actions">
                                                 {confirmId === product.id ? (
                                                     <div className="inline-confirm">
                                                         <span className="confirm-text">

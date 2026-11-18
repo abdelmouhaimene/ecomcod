@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { CreateCatalog1794883200000 } from './migrations/1794883200000-CreateCatalog.js';
+import { CreateStock1794973200000 } from './migrations/1794973200000-CreateStock.js';
 
 @Module({
   imports: [
@@ -20,7 +21,9 @@ import { CreateCatalog1794883200000 } from './migrations/1794883200000-CreateCat
           autoLoadEntities: true,
           // WARNING: synchronize should be false in production, using migrations instead
           synchronize: !isProduction,
-          migrations: isProduction ? [CreateCatalog1794883200000] : [],
+          migrations: isProduction
+            ? [CreateCatalog1794883200000, CreateStock1794973200000]
+            : [],
           migrationsRun: isProduction,
           ssl: isProduction ? { rejectUnauthorized: false } : false,
         };

@@ -69,6 +69,8 @@ export class ProductsService {
       realReviews: product.realReviews,
       fakeSolds: product.fakeSolds,
       realSolds: product.realSolds,
+      quantity: product.quantity,
+      PMP: product.PMP,
       categories,
       images: images.map((image) => ({
         id: image.id,

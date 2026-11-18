@@ -283,7 +283,7 @@ export function CategoryManager(): React.JSX.Element {
                                 {filteredCategories.map((category) => (
                                     <tr key={category.id}>
                                         <td>
-                                            <strong>{category.ref}</strong>
+                                            <strong className="table-ref">{category.ref}</strong>
                                         </td>
                                         <td>{category.name}</td>
                                         <td className="muted">{formatDate(category.createdAt)}</td>
