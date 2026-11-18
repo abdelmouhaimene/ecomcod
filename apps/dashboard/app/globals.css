@@ -614,7 +614,7 @@ button:disabled {
 
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 16px;
 }
 
@@ -743,6 +743,22 @@ button:disabled {
     min-inline-size: 0;
 }
 
+.table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-block-start: 16px;
+}
+
+.search-input {
+    max-inline-size: 320px;
+    flex: 1 1 240px;
+}
+
+.filter-select {
+    min-inline-size: 150px;
+}
+
 .table-scroll {
     overflow-x: auto;
     margin-block-start: 16px;
@@ -798,6 +814,21 @@ button:disabled {
 .role-badge {
     background: var(--accent-soft);
     color: var(--accent);
+}
+
+.client-primary,
+.client-secondary {
+    display: block;
+}
+
+.client-primary {
+    font-weight: 600;
+}
+
+.client-secondary {
+    margin-block-start: 2px;
+    color: var(--muted);
+    font-size: 0.78rem;
 }
 
 .muted {
@@ -861,6 +892,139 @@ button:disabled {
     font-size: 0.9rem;
 }
 
+/* Catalog editors */
+
+.notice.info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.notice-title {
+    font-size: 0.88rem;
+}
+
+textarea.field-input {
+    min-block-size: 80px;
+    resize: vertical;
+}
+
+.field-number {
+    max-inline-size: 100px;
+}
+
+.chip-select {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 4px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-soft);
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.chip input {
+    inline-size: 14px;
+    block-size: 14px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.chip.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-block-start: 10px;
+}
+
+.image-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-soft);
+}
+
+.image-card-main {
+    border-color: var(--accent);
+}
+
+.image-thumb {
+    inline-size: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    background: var(--bg);
+    object-fit: cover;
+}
+
+.image-main-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.image-main-label input {
+    inline-size: 16px;
+    block-size: 16px;
+    margin: 0;
+    accent-color: var(--accent);
+}
+
+.image-card-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.variant-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-block-start: 10px;
+}
+
+.variant-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) repeat(2, minmax(0, 1fr)) auto;
+    gap: 10px;
+    align-items: end;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-soft);
+}
+
+.variant-actions {
+    display: flex;
+    align-items: center;
+    padding-block-end: 1px;
+}
+
 /* Responsive layout */
 
 @media (max-width: 1100px) {
@@ -905,6 +1069,14 @@ button:disabled {
     .dashboard-content {
         padding-inline: 20px;
     }
+
+    .variant-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .variant-actions {
+        justify-content: flex-start;
+    }
 }
 
 @media (max-width: 640px) {
@@ -934,6 +1106,13 @@ button:disabled {
 
     .field-grid {
         grid-template-columns: 1fr;
+    }
+
+    .table-toolbar .search-input,
+    .table-toolbar .filter-select {
+        flex: 1 1 100%;
+        min-inline-size: 0;
+        max-inline-size: none;
     }
 
     .page-heading.toolbar {

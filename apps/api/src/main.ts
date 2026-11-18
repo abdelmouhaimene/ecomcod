@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
+import express from 'express';
+import path from 'node:path';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module.js';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
@@ -17,6 +19,7 @@ async function bootstrap() {
     .filter(Boolean);
 
   app.use(cookieParser());
+  app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   app.enableCors({ origin: corsOrigins, credentials: true });
   app.useGlobalPipes(

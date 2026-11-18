@@ -5,6 +5,7 @@ import request from 'supertest';
 import { DataSource, In } from 'typeorm';
 import { AppModule } from '../src/app.module.js';
 import { Admin } from '../src/admins/entities/admin.entity.js';
+import { User } from '../src/users/entities/user.entity.js';
 import { AdminRole } from '@repo/types';
 
 /**
@@ -18,6 +19,7 @@ describe('Admin accounts (e2e)', () => {
   const stamp = Date.now();
   const managerUsername = `manager.${stamp}`;
   const agentUsername = `agent.${stamp}`;
+  const clientEmail = `client.${stamp}@example.com`;
   const password = 'secret1234';
 
   beforeAll(async () => {
@@ -40,6 +42,7 @@ describe('Admin accounts (e2e)', () => {
     await dataSource.getRepository(Admin).delete({
       username: In([managerUsername, agentUsername]),
     });
+    await dataSource.getRepository(User).delete({ email: In([clientEmail]) });
     await app.close();
   });
 
@@ -180,6 +183,50 @@ describe('Admin accounts (e2e)', () => {
       .expect(({ body }) => {
         expect(body.message).toBe('The system admin cannot be deleted.');
       });
+  });
+
+  it('lets active admins list clients without exposing sensitive fields', async () => {
+    await dataSource.getRepository(User).save({
+      email: clientEmail,
+      fullName: 'Smoke Client',
+      emailVerifiedAt: new Date(),
+    });
+
+    await request(app.getHttpServer())
+      .get('/v1/users')
+      .expect(401);
+
+    const systemCookie = sessionCookie((await login('admin', 'admin')).headers['set-cookie'] as unknown as string[]);
+    const response = await request(app.getHttpServer())
+      .get('/v1/users')
+      .set('Cookie', systemCookie)
+      .expect(200);
+
+    expect(response.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          email: clientEmail,
+          fullName: 'Smoke Client',
+          isActive: true,
+        }),
+      ]),
+    );
+
+    for (const user of response.body as Array<Record<string, unknown>>) {
+      expect(user).not.toHaveProperty('password');
+      expect(user).not.toHaveProperty('googleId');
+      expect(Object.keys(user).sort()).toEqual(
+        ['createdAt', 'email', 'emailVerifiedAt', 'fullName', 'id', 'isActive', 'phoneNumber'].sort(),
+      );
+    }
+
+    const managerCookie = sessionCookie(
+      (await login(managerUsername)).headers['set-cookie'] as unknown as string[],
+    );
+    await request(app.getHttpServer())
+      .get('/v1/users')
+      .set('Cookie', managerCookie)
+      .expect(200);
   });
 
   it('lets an admin change their own password and log out', async () => {

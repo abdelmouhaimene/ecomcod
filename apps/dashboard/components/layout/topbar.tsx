@@ -7,6 +7,9 @@ import { PreferenceControls } from './preference-controls';
 import type { TranslationKey } from '../../lib/i18n';
 
 function titleForPath(pathname: string): TranslationKey {
+    if (pathname === '/clients') return 'navClients';
+    if (pathname === '/products') return 'navProducts';
+    if (pathname === '/categories') return 'navCategories';
     if (pathname === '/admins') return 'navAdmins';
     if (pathname === '/change-password') return 'navChangePassword';
     return 'navOverview';

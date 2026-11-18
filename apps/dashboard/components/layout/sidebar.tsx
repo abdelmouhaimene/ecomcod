@@ -27,6 +27,35 @@ const navItems: NavItem[] = [
         ),
     },
     {
+        href: '/clients',
+        labelKey: 'navClients',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="9" cy="8" r="3.2" />
+                <path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3.2 3.2 0 0 1 0 6M17 14.2a5.5 5.5 0 0 1 3.5 4.8" />
+            </svg>
+        ),
+    },
+    {
+        href: '/products',
+        labelKey: 'navProducts',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z" />
+                <path d="M3.5 7.5 12 12l8.5-4.5M12 12v9" />
+            </svg>
+        ),
+    },
+    {
+        href: '/categories',
+        labelKey: 'navCategories',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5h6v6H4zM14 5h6v6h-6zM4 14h6v5H4zM14 14h6v5h-6z" />
+            </svg>
+        ),
+    },
+    {
         href: '/admins',
         labelKey: 'navAdmins',
         systemOnly: true,

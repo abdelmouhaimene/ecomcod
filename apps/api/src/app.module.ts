@@ -8,6 +8,8 @@ import { HealthModule } from './health/health.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { AdminsModule } from './admins/admins.module.js';
+import { CategoriesModule } from './categories/categories.module.js';
+import { ProductsModule } from './products/products.module.js';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { AdminsModule } from './admins/admins.module.js';
     AuthModule,
     UsersModule,
     AdminsModule,
+    CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

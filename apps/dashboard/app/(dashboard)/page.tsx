@@ -24,6 +24,7 @@ export default function OverviewPage(): React.JSX.Element {
     const { admin } = useAuth();
     const { locale, t } = useDashboard();
     const [stats, setStats] = useState<Stats | null>(null);
+    const [clientCount, setClientCount] = useState<number | null>(null);
     const isSystemAdmin = admin?.role === AdminRole.SYSTEM;
 
     useEffect(() => {
@@ -49,6 +50,22 @@ export default function OverviewPage(): React.JSX.Element {
         };
     }, [isSystemAdmin]);
 
+    useEffect(() => {
+        let active = true;
+        adminApi
+            .listUsers()
+            .then((users) => {
+                if (active) setClientCount(users.length);
+            })
+            .catch(() => {
+                // The overview stays usable if the client count request fails.
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
+
     const statCards = [
         { labelKey: 'totalAdmins' as TranslationKey, value: stats?.total },
         { labelKey: 'managers' as TranslationKey, value: stats?.managers },
@@ -65,6 +82,10 @@ export default function OverviewPage(): React.JSX.Element {
             </header>
 
             <div className="stat-grid">
+                <article className="stat-card">
+                    <span className="stat-label">{t('totalClients')}</span>
+                    <strong className="stat-value">{clientCount ?? '—'}</strong>
+                </article>
                 {statCards.map((card) => (
                     <article className="stat-card" key={card.labelKey}>
                         <span className="stat-label">{t(card.labelKey)}</span>
@@ -87,6 +108,36 @@ export default function OverviewPage(): React.JSX.Element {
                     {t('quickActions')}
                 </h3>
                 <div className="action-grid">
+                    <Link className="action-card" href="/clients">
+                        <span className="action-icon" aria-hidden="true">◉</span>
+                        <span>
+                            <strong className="action-title">{t('viewClients')}</strong>
+                            <span className="action-description">
+                                {t('viewClientsDescription')}
+                            </span>
+                        </span>
+                        <span className="action-arrow" aria-hidden="true">→</span>
+                    </Link>
+                    <Link className="action-card" href="/products">
+                        <span className="action-icon" aria-hidden="true">▣</span>
+                        <span>
+                            <strong className="action-title">{t('viewProducts')}</strong>
+                            <span className="action-description">
+                                {t('viewProductsDescription')}
+                            </span>
+                        </span>
+                        <span className="action-arrow" aria-hidden="true">→</span>
+                    </Link>
+                    <Link className="action-card" href="/categories">
+                        <span className="action-icon" aria-hidden="true">▦</span>
+                        <span>
+                            <strong className="action-title">{t('viewCategories')}</strong>
+                            <span className="action-description">
+                                {t('viewCategoriesDescription')}
+                            </span>
+                        </span>
+                        <span className="action-arrow" aria-hidden="true">→</span>
+                    </Link>
                     {isSystemAdmin ? (
                         <Link className="action-card" href="/admins">
                             <span className="action-icon" aria-hidden="true">◎</span>
