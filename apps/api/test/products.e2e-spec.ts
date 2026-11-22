@@ -29,6 +29,8 @@ describe('Products catalog (e2e)', () => {
   const spareCategoryRef = `spare-${stamp}`;
   const productRef = `sku-${stamp}`;
   const secondProductRef = `sku-two-${stamp}`;
+  const multiProductRef = `sku-multi-${stamp}`;
+  const noImageProductRef = `sku-noimage-${stamp}`;
 
   let systemCookie: string;
   let managerCookie: string;
@@ -39,6 +41,9 @@ describe('Products catalog (e2e)', () => {
   let productId: string;
   let mainImageId: string;
   let variantId: string;
+  let valueId: string;
+  let guardSupplierId: string;
+  let guardEntryId: string;
   const uploadedFiles: string[] = [];
 
   const png = Buffer.from(
@@ -84,7 +89,21 @@ describe('Products catalog (e2e)', () => {
   });
 
   afterAll(async () => {
-    await dataSource.getRepository(Product).delete({ ref: In([productRef, secondProductRef]) });
+    if (guardEntryId) {
+      await request(app.getHttpServer())
+        .delete(`/v1/admin/stock-entries/${guardEntryId}`)
+        .set('Cookie', systemCookie)
+        .expect(204);
+    }
+    if (guardSupplierId) {
+      await request(app.getHttpServer())
+        .delete(`/v1/admin/suppliers/${guardSupplierId}`)
+        .set('Cookie', systemCookie)
+        .expect(204);
+    }
+    await dataSource.getRepository(Product).delete({
+      ref: In([productRef, secondProductRef, multiProductRef, noImageProductRef]),
+    });
     await dataSource.getRepository(Category).delete({
       ref: In([categoryRef, otherCategoryRef, spareCategoryRef]),
     });
@@ -135,7 +154,14 @@ describe('Products catalog (e2e)', () => {
         { key: 'temp-side', url: '/uploads/side.png', isMain: false, position: 1 },
       ],
       variants: [
-        { key: 'temp-variant', name: 'Color', value: 'Black', price: 0, imageKey: 'temp-main' },
+        {
+          key: 'temp-variant',
+          name: 'Color',
+          variantType: 'COLOR',
+          values: [
+            { key: 'temp-value', value: 'Black', hexColor: '#000000', imageKey: 'temp-main' },
+          ],
+        },
       ],
       ...overrides,
     };
@@ -220,6 +246,7 @@ describe('Products catalog (e2e)', () => {
     productId = created.body.id;
     mainImageId = created.body.images.find((image: { isMain: boolean }) => image.isMain).id;
     variantId = created.body.variants[0].id;
+    valueId = created.body.variants[0].values[0].id;
 
     expect(created.body.subtitle).toBe('A subtitle');
     expect(created.body.price).toBe(19.99);
@@ -228,7 +255,16 @@ describe('Products catalog (e2e)', () => {
     );
     expect(created.body.images).toHaveLength(2);
     expect(created.body.images.filter((image: { isMain: boolean }) => image.isMain)).toHaveLength(1);
-    expect(created.body.variants[0].imageKey).toBe(created.body.images[0].key);
+    expect(created.body.variants[0].values[0].imageKey).toBe(created.body.images[0].key);
+    expect(created.body.variants[0]).not.toHaveProperty('price');
+    expect(created.body.variants[0].values[0]).not.toHaveProperty('price');
+    expect(created.body.skus).toHaveLength(1);
+    expect(created.body.skus[0]).toMatchObject({
+      label: 'Black',
+      stockQuantity: 0,
+      variantValueIds: [valueId],
+    });
+    expect(created.body.skus[0].sku).toContain(productRef.toUpperCase());
 
     const updated = await request(app.getHttpServer())
       .put(`/v1/admin/products/${productId}`)
@@ -241,7 +277,19 @@ describe('Products catalog (e2e)', () => {
           { key: 'temp-replacement', url: '/uploads/replacement.png', isMain: false, position: 1 },
         ],
         variants: [
-          { key: variantId, name: 'Color', value: 'White', price: 1, imageKey: 'temp-replacement' },
+          {
+            key: variantId,
+            name: 'Color',
+            variantType: 'COLOR',
+            values: [
+              {
+                key: valueId,
+                value: 'White',
+                hexColor: '#ffffff',
+                imageKey: 'temp-replacement',
+              },
+            ],
+          },
         ],
       }))
       .expect(200);
@@ -255,10 +303,102 @@ describe('Products catalog (e2e)', () => {
     expect(updated.body.images.filter((image: { isMain: boolean }) => image.isMain)).toHaveLength(1);
     expect(updated.body.variants[0]).toMatchObject({
       id: variantId,
-      imageId: newImageId,
-      value: 'White',
-      price: 1,
+      variantType: 'COLOR',
+      values: [{
+        id: valueId,
+        value: 'White',
+        hexColor: '#ffffff',
+        imageId: newImageId,
+        imageKey: newImageId,
+      }],
     });
+    expect(updated.body.variants[0]).not.toHaveProperty('price');
+    expect(updated.body.variants[0].values[0]).not.toHaveProperty('price');
+    expect(updated.body.skus[0]).toMatchObject({
+      label: 'White',
+      stockQuantity: 0,
+      variantValueIds: [valueId],
+    });
+  });
+
+  it('generates sellable SKUs for every variant combination without SKU prices', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/v1/admin/products')
+      .set('Cookie', systemCookie)
+      .send(productPayload(multiProductRef, {
+        categoryIds: [categoryId],
+        variants: [
+          {
+            name: 'Color', variantType: 'COLOR',
+            values: [
+              { value: 'Black', hexColor: '#000000', imageKey: 'temp-main' },
+              { value: 'White', hexColor: '#ffffff', imageKey: 'temp-main' },
+            ],
+          },
+          {
+            name: 'Size', variantType: 'SIZE_TEXT',
+            values: [
+              { value: 'S', imageKey: 'temp-side' },
+              { value: 'M', imageKey: 'temp-side' },
+            ],
+          },
+        ],
+      }))
+      .expect(201);
+
+    expect(created.body.skus).toHaveLength(4);
+    expect(created.body.skus.map((sku: { combinationKey: string }) => sku.combinationKey)).toEqual(
+      expect.arrayContaining([
+        'COLOR:Black|SIZE_TEXT:M',
+        'COLOR:Black|SIZE_TEXT:S',
+        'COLOR:White|SIZE_TEXT:M',
+        'COLOR:White|SIZE_TEXT:S',
+      ]),
+    );
+    for (const sku of created.body.skus) {
+      expect(sku).not.toHaveProperty('price');
+      expect(sku.stockQuantity).toBe(0);
+      expect(sku.variantValueIds).toHaveLength(2);
+    }
+    expect(created.body.price).toBe(19.99);
+    expect(created.body.variants).toHaveLength(2);
+    expect(created.body.variants.every((variant: { values: unknown[] }) => variant.values.length === 2))
+      .toBe(true);
+
+    await request(app.getHttpServer())
+      .delete(`/v1/admin/products/${created.body.id}`)
+      .set('Cookie', systemCookie)
+      .expect(204);
+  });
+
+  it('allows variant values with no image', async () => {
+    const created = await request(app.getHttpServer())
+      .post('/v1/admin/products')
+      .set('Cookie', systemCookie)
+      .send(productPayload(noImageProductRef, {
+        categoryIds: [categoryId],
+        variants: [{
+          name: 'Size', variantType: 'SIZE_TEXT',
+          values: [{ value: 'M' }, { value: 'L', imageKey: null }],
+        }],
+      }))
+      .expect(201);
+
+    const values = created.body.variants[0].values;
+    expect(values).toHaveLength(2);
+    expect(values.every((value: {
+      imageId: string | null;
+      imageKey: string | null;
+      imageUrl: string;
+    }) => value.imageId === null && value.imageKey === null && value.imageUrl === '')).toBe(true);
+    expect(created.body.skus).toHaveLength(2);
+    expect(created.body.skus.every((sku: { imageId: string | null; imageUrl: string }) =>
+      sku.imageId !== null && sku.imageUrl !== '')).toBe(true);
+
+    await request(app.getHttpServer())
+      .delete(`/v1/admin/products/${created.body.id}`)
+      .set('Cookie', systemCookie)
+      .expect(204);
   });
 
   it('lets any admin read products but blocks agent writes', async () => {
@@ -317,8 +457,56 @@ describe('Products catalog (e2e)', () => {
       ],
       [
         'unknown variant imageKey',
-        { variants: [{ name: 'Color', value: 'Red', price: 0, imageKey: 'nope' }] },
-        'Each variant imageKey must reference an image in this product.',
+        { variants: [{
+          name: 'Color', variantType: 'COLOR',
+          values: [{ value: 'Red', hexColor: '#ff0000', imageKey: 'nope' }],
+        }] },
+        'Each variant value imageKey must reference an image in this product.',
+      ],
+      [
+        'unknown variant type',
+        { variants: [{
+          name: 'Color', variantType: 'WEIGHT',
+          values: [{ value: 'Red', hexColor: '#ff0000', imageKey: 'temp-main' }],
+        }] },
+        'variantType must be one of the following values: COLOR, SIZE_TEXT, SIZE_NUM, DESIGN, OTHER',
+      ],
+      [
+        'invalid SIZE_TEXT value',
+        { variants: [{
+          name: 'Size', variantType: 'SIZE_TEXT',
+          values: [{ value: 'XXS', imageKey: 'temp-main' }],
+        }] },
+        'Invalid value for this variant type',
+      ],
+      [
+        'COLOR without a hex color',
+        { variants: [{
+          name: 'Color', variantType: 'COLOR',
+          values: [{ value: 'Red', imageKey: 'temp-main' }],
+        }] },
+        'Invalid value for this variant type',
+      ],
+      [
+        'OTHER without a custom name',
+        { variants: [{
+          name: '   ', variantType: 'OTHER',
+          values: [{ value: 'Cotton', imageKey: 'temp-main' }],
+        }] },
+        'name should not be empty',
+      ],
+      [
+        'no variant values',
+        { variants: [{ name: 'Color', variantType: 'COLOR', values: [] }] },
+        'values should not be empty',
+      ],
+      [
+        'price on a variant value',
+        { variants: [{
+          name: 'Color', variantType: 'COLOR',
+          values: [{ value: 'Red', hexColor: '#ff0000', imageKey: 'temp-main', price: 5 }],
+        }] },
+        'property price should not exist',
       ],
       [
         'duplicate image keys',
@@ -415,7 +603,60 @@ describe('Products catalog (e2e)', () => {
     expect(message(badMime.body)).toBe('Only JPEG, PNG, WebP and GIF images are allowed.');
   });
 
+  it('refuses to delete a product that has stock history', async () => {
+    const supplier = await request(app.getHttpServer())
+      .post('/v1/admin/suppliers')
+      .set('Cookie', systemCookie)
+      .send({ name: `Guard supplier ${stamp}` })
+      .expect(201);
+    guardSupplierId = supplier.body.id;
+
+    const current = await request(app.getHttpServer())
+      .get(`/v1/admin/products/${productId}`)
+      .set('Cookie', systemCookie)
+      .expect(200);
+    const stockSkuId = current.body.skus[0].id;
+
+    const entry = await request(app.getHttpServer())
+      .post('/v1/admin/stock-entries')
+      .set('Cookie', systemCookie)
+      .send({
+        date: '2026-11-20',
+        supplierId: guardSupplierId,
+        items: [{
+          productId,
+          buyingPrice: 4.5,
+          totalQuantity: 2,
+          combinations: [{ skuId: stockSkuId, quantity: 2 }],
+        }],
+      })
+      .expect(201);
+    guardEntryId = entry.body.id;
+
+    const blocked = await request(app.getHttpServer())
+      .delete(`/v1/admin/products/${productId}`)
+      .set('Cookie', systemCookie)
+      .expect(409);
+    expect(message(blocked.body)).toBe(
+      'This product has stock, order or offer history and cannot be deleted.',
+    );
+  });
+
   it('cleans up its catalog data', async () => {
+    if (guardEntryId) {
+      await request(app.getHttpServer())
+        .delete(`/v1/admin/stock-entries/${guardEntryId}`)
+        .set('Cookie', systemCookie)
+        .expect(204);
+      guardEntryId = '';
+    }
+    if (guardSupplierId) {
+      await request(app.getHttpServer())
+        .delete(`/v1/admin/suppliers/${guardSupplierId}`)
+        .set('Cookie', systemCookie)
+        .expect(204);
+      guardSupplierId = '';
+    }
     await request(app.getHttpServer())
       .delete(`/v1/admin/products/${productId}`)
       .set('Cookie', systemCookie)

@@ -12,6 +12,13 @@ function isUniqueViolation(error: unknown): boolean {
     return (error as { code?: string } | null)?.code === '23505';
 }
 
+/** Optional contact text is trimmed; blank or missing values are stored as null. */
+function contactValue(value: string | null | undefined): string | null {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+}
+
 @Injectable()
 export class SuppliersService {
     constructor(
@@ -23,6 +30,10 @@ export class SuppliersService {
         return {
             id: supplier.id,
             name: supplier.name,
+            address: supplier.address ?? null,
+            phone: supplier.phone ?? null,
+            email: supplier.email ?? null,
+            description: supplier.description ?? null,
             createdAt: supplier.createdAt,
             updatedAt: supplier.updatedAt,
         };
@@ -45,7 +56,13 @@ export class SuppliersService {
         if (existing) throw new ConflictException('A supplier with this name already exists.');
 
         try {
-            const supplier = this.repo.create({ name });
+            const supplier = this.repo.create({
+                name,
+                address: contactValue(dto.address),
+                phone: contactValue(dto.phone),
+                email: contactValue(dto.email),
+                description: contactValue(dto.description),
+            });
             await this.repo.save(supplier);
             return this.toPublic(supplier);
         } catch (error) {
@@ -67,6 +84,10 @@ export class SuppliersService {
         }
 
         supplier.name = name;
+        supplier.address = contactValue(dto.address);
+        supplier.phone = contactValue(dto.phone);
+        supplier.email = contactValue(dto.email);
+        supplier.description = contactValue(dto.description);
         try {
             await this.repo.save(supplier);
         } catch (error) {

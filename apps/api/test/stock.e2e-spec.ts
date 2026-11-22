@@ -30,8 +30,12 @@ describe('Stock module (e2e)', () => {
     let systemCookie: string;
     let managerCookie: string;
     let agentCookie: string;
+    let categoryId: string;
     let productId: string;
     let otherProductId: string;
+    let skuId: string;
+    let secondSkuId: string;
+    let otherSkuId: string;
     let supplierId: string;
     let otherSupplierId: string;
     let entryId: string;
@@ -67,8 +71,18 @@ describe('Stock module (e2e)', () => {
             .set('Cookie', systemCookie)
             .send({ name: `Stock category ${stamp}`, ref: categoryRef })
             .expect(201);
+        categoryId = category.body.id;
 
         for (const ref of [productRef, otherProductRef]) {
+            const variants = ref === productRef
+                ? [{
+                    name: 'Color', variantType: 'COLOR',
+                    values: [
+                        { value: 'Black', hexColor: '#000000', imageKey: 'main' },
+                        { value: 'White', hexColor: '#ffffff', imageKey: 'main' },
+                    ],
+                }]
+                : [];
             const created = await request(app.getHttpServer())
                 .post('/v1/admin/products')
                 .set('Cookie', systemCookie)
@@ -80,13 +94,19 @@ describe('Stock module (e2e)', () => {
                     realReviews: 0,
                     fakeSolds: 0,
                     realSolds: 0,
-                    categoryIds: [category.body.id],
+                    categoryIds: [categoryId],
                     images: [{ key: 'main', url: `/uploads/${ref}.png`, isMain: true, position: 0 }],
-                    variants: [],
+                    variants,
                 })
                 .expect(201);
-            if (ref === productRef) productId = created.body.id;
-            else otherProductId = created.body.id;
+            if (ref === productRef) {
+                productId = created.body.id;
+                skuId = created.body.skus.find((sku: { label: string }) => sku.label === 'Black').id;
+                secondSkuId = created.body.skus.find((sku: { label: string }) => sku.label === 'White').id;
+            } else {
+                otherProductId = created.body.id;
+                otherSkuId = created.body.skus[0].id;
+            }
         }
 
         for (const name of [supplierName, otherSupplierName]) {
@@ -103,6 +123,15 @@ describe('Stock module (e2e)', () => {
     afterAll(async () => {
         const entryIds = [entryId, secondEntryId].filter((id): id is string => Boolean(id));
         if (entryIds.length > 0) {
+            await dataSource.query(
+                'DELETE FROM "stock_movements" WHERE "stockEntryId" = ANY($1::uuid[])',
+                [entryIds],
+            );
+            await dataSource.query(
+                'DELETE FROM "stock_entry_combinations" WHERE "entryItemId" IN ' +
+                '(SELECT "id" FROM "stock_entry_items" WHERE "entryId" = ANY($1::uuid[]))',
+                [entryIds],
+            );
             await dataSource.getRepository(StockEntryItem).delete({ entryId: In(entryIds) });
             await dataSource.getRepository(StockEntry).delete({ id: In(entryIds) });
         }
@@ -128,11 +157,26 @@ describe('Stock module (e2e)', () => {
             .expect(200);
     }
 
-    function entryPayload(overrides: Record<string, unknown> = {}): object {
+    function message(body: unknown): string {
+        const raw = (body as { message?: unknown }).message;
+        return Array.isArray(raw) ? raw.join(' ') : String(raw);
+    }
+
+    function item(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+        return {
+            productId,
+            buyingPrice: 5.5,
+            totalQuantity: 2,
+            combinations: [{ skuId, quantity: 2 }, { skuId: secondSkuId, quantity: 0 }],
+            ...overrides,
+        };
+    }
+
+    function entryPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
         return {
             date: '2026-01-15',
             supplierId,
-            items: [{ productId, quantity: 2, unitPrice: 5.5 }],
+            items: [item()],
             ...overrides,
         };
     }
@@ -162,25 +206,45 @@ describe('Stock module (e2e)', () => {
             .expect(403);
     });
 
-    it('validates dates, lines and supplier references', async () => {
-        await request(app.getHttpServer())
-            .post('/v1/admin/stock-entries')
-            .set('Cookie', managerCookie)
-            .send(entryPayload({ date: '2026-02-30' }))
-            .expect(400);
-        await request(app.getHttpServer())
-            .post('/v1/admin/stock-entries')
-            .set('Cookie', managerCookie)
-            .send(entryPayload({ items: [{ productId, quantity: 0, unitPrice: 5 }] }))
-            .expect(400);
-        await request(app.getHttpServer())
-            .post('/v1/admin/stock-entries')
-            .set('Cookie', managerCookie)
-            .send(entryPayload({ supplierId: '33333333-3333-4333-8333-333333333333' }))
-            .expect(404);
+    it('validates dates, product lines, prices and combination sums', async () => {
+        const cases: Array<[string, Record<string, unknown>, number, string?]> = [
+            ['invalid date', entryPayload({ date: '2026-02-30' }), 400],
+            ['negative price', entryPayload({
+                items: [item({ buyingPrice: -1 })],
+            }), 400],
+            ['too many price decimals', entryPayload({
+                items: [item({ buyingPrice: 1.234 })],
+            }), 400],
+            ['zero total quantity', entryPayload({
+                items: [item({ totalQuantity: 0 })],
+            }), 400],
+            ['missing active combination', entryPayload({
+                items: [item({
+                    combinations: [{ skuId, quantity: 2 }],
+                })],
+            }), 400, 'All active combinations of a product must be listed.'],
+            ['short distribution', entryPayload({
+                items: [item({ combinations: [{ skuId, quantity: 1 }, { skuId: secondSkuId, quantity: 0 }] })],
+            }), 400, 'Combination quantities (1) are less than totalQuantity (2).'],
+            ['over distribution', entryPayload({
+                items: [item({ totalQuantity: 1 })],
+            }), 400, 'Combination quantities (2) are greater than totalQuantity (1).'],
+            ['unknown supplier', entryPayload({
+                supplierId: '33333333-3333-4333-8333-333333333333',
+            }), 404],
+        ];
+
+        for (const [label, payloadValue, status, expected] of cases) {
+            const response = await request(app.getHttpServer())
+                .post('/v1/admin/stock-entries')
+                .set('Cookie', managerCookie)
+                .send(payloadValue)
+                .expect(status);
+            if (expected) expect(message(response.body), label).toContain(expected);
+        }
     });
 
-    it('creates an entry with computed totals and updates quantity and PMP', async () => {
+    it('creates an entry with computed totals, combination lines and updated quantity and PMP', async () => {
         const created = await request(app.getHttpServer())
             .post('/v1/admin/stock-entries')
             .set('Cookie', managerCookie)
@@ -194,28 +258,72 @@ describe('Stock module (e2e)', () => {
             supplierName,
             adminUsername: managerUsername,
             total: 11,
-            items: [{ productId, quantity: 2, unitPrice: 5.5, lineTotal: 11, productRef }],
+            items: [{
+                productId,
+                productRef,
+                buyingPrice: 5.5,
+                totalQuantity: 2,
+                lineTotal: 11,
+            }],
         });
+        expect(created.body.items[0].combinations).toHaveLength(2);
+        expect(created.body.items[0].combinations).toEqual(expect.arrayContaining([
+            expect.objectContaining({ skuId, quantity: 2 }),
+            expect.objectContaining({ skuId: secondSkuId, quantity: 0 }),
+        ]));
+        for (const combination of created.body.items[0].combinations) {
+            expect(combination.sku).toBeTruthy();
+            expect(combination.skuLabel).toBeTruthy();
+        }
 
         const product = await request(app.getHttpServer())
             .get(`/v1/admin/products/${productId}`)
             .set('Cookie', agentCookie)
             .expect(200);
         expect(product.body).toMatchObject({ quantity: 2, PMP: 5.5 });
+        expect(product.body.skus.find((sku: { id: string }) => sku.id === skuId))
+            .toMatchObject({ stockQuantity: 2, PMP: 5.5 });
+        expect(product.body.skus.find((sku: { id: string }) => sku.id === secondSkuId))
+            .toMatchObject({ stockQuantity: 0, PMP: 0 });
+    });
+
+    it('exposes per-SKU availability and filters entries by SKU', async () => {
+        const availability = await request(app.getHttpServer())
+            .get('/v1/admin/stock/availability')
+            .set('Cookie', agentCookie)
+            .expect(200);
+        expect(availability.body).toEqual(expect.arrayContaining([
+            expect.objectContaining({ skuId, productId, productRef, stockQuantity: 2 }),
+            expect.objectContaining({ skuId: secondSkuId, productId, productRef, stockQuantity: 0 }),
+        ]));
+
+        for (const id of [skuId, secondSkuId]) {
+            const bySku = await request(app.getHttpServer())
+                .get(`/v1/admin/stock-entries?skuId=${id}`)
+                .set('Cookie', agentCookie)
+                .expect(200);
+            expect(bySku.body.map((entry: { id: string }) => entry.id)).toContain(entryId);
+        }
     });
 
     it('applies the weighted average price across entries', async () => {
         const second = await request(app.getHttpServer())
             .post('/v1/admin/stock-entries')
             .set('Cookie', systemCookie)
-            .send(entryPayload({
+            .send({
                 date: '2026-02-20',
                 supplierId: otherSupplierId,
                 items: [
-                    { productId, quantity: 2, unitPrice: 7.5 },
-                    { productId: otherProductId, quantity: 3, unitPrice: 2 },
+                    {
+                        productId, buyingPrice: 7.5, totalQuantity: 2,
+                        combinations: [{ skuId, quantity: 1 }, { skuId: secondSkuId, quantity: 1 }],
+                    },
+                    {
+                        productId: otherProductId, buyingPrice: 2, totalQuantity: 3,
+                        combinations: [{ skuId: otherSkuId, quantity: 3 }],
+                    },
                 ],
-            }))
+            })
             .expect(201);
         secondEntryId = second.body.id;
         expect(second.body.total).toBe(21);
@@ -288,6 +396,10 @@ describe('Stock module (e2e)', () => {
             .set('Cookie', agentCookie)
             .expect(200);
         expect(product.body).toMatchObject({ quantity: 2, PMP: 7.5 });
+        expect(product.body.skus.find((sku: { id: string }) => sku.id === skuId))
+            .toMatchObject({ stockQuantity: 1, PMP: 7.5 });
+        expect(product.body.skus.find((sku: { id: string }) => sku.id === secondSkuId))
+            .toMatchObject({ stockQuantity: 1, PMP: 7.5 });
 
         const other = await request(app.getHttpServer())
             .get(`/v1/admin/products/${otherProductId}`)

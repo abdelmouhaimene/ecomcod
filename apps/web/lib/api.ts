@@ -1,4 +1,11 @@
-import type { ApiErrorResponse } from '@repo/types';
+import type {
+  ApiErrorResponse,
+  OrderPayload,
+  PublicFamily,
+  PublicOffer,
+  PublicOrder,
+  PublicProduct,
+} from '@repo/types';
 
 /**
  * The browser talks to the Nest API directly. Cookies (including the httpOnly
@@ -67,3 +74,16 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
+
+/** Typed storefront calls. All paths are relative to `API_URL`. */
+export const catalogApi = {
+  listProducts: () => apiFetch<PublicProduct[]>('/v1/products'),
+  getProduct: (id: string) =>
+    apiFetch<PublicProduct>(`/v1/products/${encodeURIComponent(id)}`),
+  listActiveOffers: () => apiFetch<PublicOffer[]>('/v1/offers/active'),
+  listFamilies: () => apiFetch<PublicFamily[]>('/v1/families'),
+  createOrder: (payload: OrderPayload) =>
+    apiFetch<PublicOrder>('/v1/orders', { method: 'POST', body: payload }),
+  getOrder: (id: string) =>
+    apiFetch<PublicOrder>(`/v1/orders/${encodeURIComponent(id)}`),
+};

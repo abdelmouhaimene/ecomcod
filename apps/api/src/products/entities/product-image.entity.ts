@@ -8,7 +8,7 @@ import {
     OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import type { ProductVariant } from './product-variant.entity.js';
+import type { ProductVariantValue } from './product-variant-value.entity.js';
 import type { Product } from './product.entity.js';
 
 @Entity('product_images')
@@ -41,8 +41,8 @@ export class ProductImage {
     @ManyToOne('Product', 'images', { onDelete: 'CASCADE' })
     product: Product;
 
-    @OneToMany('ProductVariant', 'image')
-    variants: ProductVariant[];
+    @OneToMany('ProductVariantValue', 'image')
+    variantValues: ProductVariantValue[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;

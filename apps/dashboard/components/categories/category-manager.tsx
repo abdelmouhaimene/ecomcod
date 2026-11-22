@@ -1,14 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { AdminRole, type CategoryPayload, type PublicCategory } from '@repo/types';
-import { AdminApiError, adminApi } from '../../lib/admin-api';
+import { AdminApiError, adminApi, resolveMediaUrl } from '../../lib/admin-api';
 import { useAuth } from '../providers/auth-provider';
 import { useDashboard } from '../providers/dashboard-provider';
 
 interface CategoryFormState {
     name: string;
     ref: string;
+    icon: string | null;
 }
 
 function apiMessage(caught: unknown, fallback: string): string {
@@ -20,7 +21,7 @@ function matchesSearch(category: PublicCategory, query: string): boolean {
     return [category.ref, category.name].some((value) => value.toLowerCase().includes(query));
 }
 
-const emptyForm: CategoryFormState = { name: '', ref: '' };
+const emptyForm: CategoryFormState = { name: '', ref: '', icon: null };
 
 export function CategoryManager(): React.JSX.Element {
     const { admin } = useAuth();
@@ -37,6 +38,7 @@ export function CategoryManager(): React.JSX.Element {
     const [formError, setFormError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [uploadingIcon, setUploadingIcon] = useState(false);
     const [confirmId, setConfirmId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -74,7 +76,29 @@ export function CategoryManager(): React.JSX.Element {
         setNotice(null);
         setFormError(null);
         setEditingId(category.id);
-        setForm({ name: category.name, ref: category.ref });
+        setForm({ name: category.name, ref: category.ref, icon: category.icon ?? null });
+    };
+
+    const handleIconChange = async (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file) return;
+
+        setFormError(null);
+        setNotice(null);
+        setUploadingIcon(true);
+        try {
+            const response = await adminApi.uploadImage(file);
+            setForm((current) => ({ ...current, icon: response.url }));
+        } catch (caught) {
+            setFormError(apiMessage(caught, t('categoryIconError')));
+        } finally {
+            setUploadingIcon(false);
+        }
+    };
+
+    const removeIcon = () => {
+        setForm((current) => ({ ...current, icon: null }));
     };
 
     const handleSave = async () => {
@@ -92,7 +116,7 @@ export function CategoryManager(): React.JSX.Element {
             return;
         }
 
-        const payload: CategoryPayload = { ref, name };
+        const payload: CategoryPayload = { ref, name, icon: form.icon };
         setSaving(true);
         try {
             if (editingId !== null) {
@@ -202,6 +226,42 @@ export function CategoryManager(): React.JSX.Element {
                                 autoComplete="off"
                             />
                         </div>
+                        <div className="field">
+                            <span className="field-label">{t('categoryIcon')}</span>
+                            <p className="field-hint">{t('categoryIconHint')}</p>
+                            <div className="image-card-controls">
+                                <label className="button secondary small" htmlFor="category-icon-file">
+                                    {uploadingIcon ? t('uploading') : t('uploadCategoryIcon')}
+                                </label>
+                                <input
+                                    id="category-icon-file"
+                                    className="sr-only"
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp,image/gif"
+                                    aria-label={t('uploadCategoryIcon')}
+                                    disabled={uploadingIcon || saving}
+                                    onChange={(event) => void handleIconChange(event)}
+                                />
+                                {form.icon ? (
+                                    <button
+                                        type="button"
+                                        className="button secondary small"
+                                        onClick={removeIcon}
+                                    >
+                                        {t('categoryIconRemove')}
+                                    </button>
+                                ) : null}
+                            </div>
+                            {form.icon ? (
+                                <img
+                                    className="image-thumb"
+                                    src={resolveMediaUrl(form.icon)}
+                                    alt=""
+                                    loading="lazy"
+                                    style={{ width: 56, height: 56, objectFit: 'cover' }}
+                                />
+                            ) : null}
+                        </div>
                         <div className="form-actions">
                             {editingId !== null ? (
                                 <button
@@ -216,7 +276,7 @@ export function CategoryManager(): React.JSX.Element {
                                 type="button"
                                 className="button primary"
                                 onClick={() => void handleSave()}
-                                disabled={saving}
+                                disabled={saving || uploadingIcon}
                             >
                                 {saving ? t('saving') : t('save')}
                             </button>
@@ -275,6 +335,7 @@ export function CategoryManager(): React.JSX.Element {
                                 <tr>
                                     <th scope="col">{t('columnRef')}</th>
                                     <th scope="col">{t('columnName')}</th>
+                                    <th scope="col">{t('categoryIcon')}</th>
                                     <th scope="col">{t('createdAt')}</th>
                                     {canManage ? <th scope="col">{t('actions')}</th> : null}
                                 </tr>
@@ -286,6 +347,17 @@ export function CategoryManager(): React.JSX.Element {
                                             <strong className="table-ref">{category.ref}</strong>
                                         </td>
                                         <td>{category.name}</td>
+                                        <td>
+                                            {category.icon ? (
+                                                <img
+                                                    className="image-thumb"
+                                                    src={resolveMediaUrl(category.icon)}
+                                                    alt=""
+                                                    loading="lazy"
+                                                    style={{ width: 36, height: 36, objectFit: 'cover' }}
+                                                />
+                                            ) : null}
+                                        </td>
                                         <td className="muted">{formatDate(category.createdAt)}</td>
                                         {canManage ? (
                                             <td>

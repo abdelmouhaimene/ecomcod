@@ -23,6 +23,10 @@ export class Category {
     @Column({ type: 'varchar', length: 50 })
     ref: string;
 
+    /** Optional icon image URL served by the API. */
+    @Column({ type: 'varchar', length: 500, nullable: true })
+    icon: string | null;
+
     /** String targets avoid an ESM cycle between catalog entities. */
     @OneToMany('ProductCategory', 'category')
     productCategories: ProductCategory[];

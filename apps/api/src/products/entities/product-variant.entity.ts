@@ -5,16 +5,21 @@ import {
     Entity,
     Index,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { numericTransformer } from '../../common/transformers.js';
-import type { ProductImage } from './product-image.entity.js';
+import type { ProductVariantValue } from './product-variant-value.entity.js';
 import type { Product } from './product.entity.js';
 
+export const VARIANT_TYPES = ['COLOR', 'SIZE_TEXT', 'SIZE_NUM', 'DESIGN', 'OTHER'] as const;
+export type VariantTypeEntity = (typeof VARIANT_TYPES)[number];
+
+export const SIZE_TEXT_VALUES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as const;
+
+/** A product-scoped dimension, e.g. Color or Size. Values live in their own table. */
 @Entity('product_variants')
 @Index('IDX_product_variants_product', ['productId'])
-@Index('IDX_product_variants_image', ['imageId'])
-@Check('CHK_product_variants_price', '"price" >= 0')
+@Check('CHK_product_variants_variant_type', `"variantType" IN ('COLOR', 'SIZE_TEXT', 'SIZE_NUM', 'DESIGN', 'OTHER')`)
 export class ProductVariant {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -22,32 +27,18 @@ export class ProductVariant {
     @Column({ type: 'uuid' })
     productId: string;
 
-    /** E.g. `Color`, `Size`, `Material`. */
+    /** Dimension label. For `OTHER`, this is the user-created type name. */
     @Column({ type: 'varchar', length: 100 })
     name: string;
 
-    /** E.g. `Red`, `M`, `Cotton`. */
-    @Column({ type: 'varchar', length: 100 })
-    value: string;
+    @Column({ type: 'varchar', length: 30, default: 'OTHER' })
+    variantType: VariantTypeEntity;
 
-    @Column({
-        type: 'numeric',
-        precision: 12,
-        scale: 2,
-        transformer: numericTransformer,
-    })
-    price: number;
-
-    /** Image chosen from the parent product's images. */
-    @Column({ type: 'uuid' })
-    imageId: string;
-
-    /** String targets avoid an ESM cycle between catalog entities. */
     @ManyToOne('Product', 'variants', { onDelete: 'CASCADE' })
     product: Product;
 
-    @ManyToOne('ProductImage', 'variants', { onDelete: 'CASCADE' })
-    image: ProductImage;
+    @OneToMany('ProductVariantValue', 'variant', { cascade: true })
+    values: ProductVariantValue[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;

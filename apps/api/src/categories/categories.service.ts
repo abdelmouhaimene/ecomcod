@@ -12,6 +12,11 @@ function isUniqueViolation(error: unknown): boolean {
   return (error as { code?: string } | null)?.code === '23505';
 }
 
+function normalizeIcon(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
 @Injectable()
 export class CategoriesService {
   constructor(
@@ -25,6 +30,7 @@ export class CategoriesService {
       id: category.id,
       name: category.name,
       ref: category.ref,
+      icon: category.icon ?? null,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
     };
@@ -47,7 +53,7 @@ export class CategoriesService {
     await this.assertUnique(name, ref);
 
     try {
-      const category = this.repo.create({ name, ref });
+      const category = this.repo.create({ name, ref, icon: normalizeIcon(dto.icon) });
       await this.repo.save(category);
       return this.toPublic(category);
     } catch (error) {
@@ -68,6 +74,7 @@ export class CategoriesService {
 
     category.name = name;
     category.ref = ref;
+    category.icon = normalizeIcon(dto.icon);
     try {
       await this.repo.save(category);
     } catch (error) {

@@ -73,7 +73,7 @@ export function BottomNav() {
           className="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim active:scale-95 transition-transform duration-150 hover:text-primary dark:hover:text-primary-fixed"
         >
           <span className="material-symbols-outlined text-[24px]">local_shipping</span>
-          <span className="font-label-caps text-label-caps mt-0.5">Tracking</span>
+          <span className="font-label-caps text-label-caps mt-0.5">{t('tracking')}</span>
         </Link>
       </div>
     </nav>

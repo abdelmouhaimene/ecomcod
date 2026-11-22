@@ -2,6 +2,7 @@ import { Transform, Type } from 'class-transformer';
 import {
     ArrayNotEmpty,
     IsArray,
+    IsEmail,
     IsInt,
     IsNotEmpty,
     IsNumber,
@@ -24,6 +25,13 @@ import type {
 
 const trimString = ({ value }: { value: unknown }): unknown =>
     typeof value === 'string' ? value.trim() : value;
+
+/** Optional text is trimmed, with blank values normalised to null. */
+const trimOptionalString = ({ value }: { value: unknown }): unknown => {
+    if (typeof value !== 'string') return value;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+};
 
 /** Calendar dates are accepted as `YYYY-MM-DD`, without a time component. */
 function isCalendarDate(value: unknown): boolean {
@@ -81,12 +89,69 @@ function stockRule(
     };
 }
 
+function itemRule(
+    name: string,
+    message: (dto: StockEntryItemDto) => string,
+    isValid: (dto: StockEntryItemDto) => boolean,
+): PropertyDecorator {
+    return (target: object, propertyName: string | symbol) => {
+        registerDecorator({
+            name,
+            target: target.constructor,
+            propertyName: propertyName as string,
+            options: { message: (args: ValidationArguments) => message(args.object as StockEntryItemDto) },
+            validator: {
+                validate: (_value: unknown, args: ValidationArguments): boolean =>
+                    isValid(args.object as StockEntryItemDto),
+            },
+        });
+    };
+}
+
+const combinationSum = (dto: StockEntryItemDto): number =>
+    (dto.combinations ?? []).reduce((sum, combination) => sum + (combination?.quantity ?? 0), 0);
+
 export class SupplierDto implements SupplierPayload {
     @Transform(trimString)
     @IsString()
     @IsNotEmpty()
     @MaxLength(150)
     name: string;
+
+    @Transform(trimOptionalString)
+    @IsOptional()
+    @IsString()
+    @MaxLength(300)
+    address?: string | null;
+
+    @Transform(trimOptionalString)
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    phone?: string | null;
+
+    @Transform(trimOptionalString)
+    @IsOptional()
+    @IsEmail()
+    @MaxLength(150)
+    email?: string | null;
+
+    @Transform(trimOptionalString)
+    @IsOptional()
+    @IsString()
+    @MaxLength(1000)
+    description?: string | null;
+}
+
+export class StockEntryCombinationDto {
+    @IsUUID('4')
+    skuId: string;
+
+    /** Zero keeps an untouched combination visible in the form. */
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    quantity: number;
 }
 
 export class StockEntryItemDto implements StockEntryItemPayload {
@@ -94,15 +159,43 @@ export class StockEntryItemDto implements StockEntryItemPayload {
     productId: string;
 
     @Type(() => Number)
-    @IsInt()
-    @Min(1)
-    quantity: number;
-
-    @Type(() => Number)
     @IsNumber()
     @Min(0)
     @twoDecimalPlaces()
-    unitPrice: number;
+    buyingPrice: number;
+
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    totalQuantity: number;
+
+    @IsArray()
+    @ArrayNotEmpty()
+    @itemRule(
+        'uniqueCombinationSkus',
+        () => 'A combination can appear only once for a product.',
+        (dto) => {
+            if (!Array.isArray(dto.combinations)) return true;
+            const ids = dto.combinations.map((combination) => combination?.skuId);
+            return new Set(ids).size === ids.length;
+        },
+    )
+    @itemRule(
+        'combinationSumMatchesTotal',
+        (dto) => {
+            const sum = combinationSum(dto);
+            return sum < dto.totalQuantity
+                ? `Combination quantities (${sum}) are less than totalQuantity (${dto.totalQuantity}).`
+                : `Combination quantities (${sum}) are greater than totalQuantity (${dto.totalQuantity}).`;
+        },
+        (dto) => {
+            if (!Array.isArray(dto.combinations) || typeof dto.totalQuantity !== 'number') return true;
+            return combinationSum(dto) === dto.totalQuantity;
+        },
+    )
+    @ValidateNested({ each: true })
+    @Type(() => StockEntryCombinationDto)
+    combinations: StockEntryCombinationDto[];
 }
 
 export class StockEntryDto implements StockEntryPayload {
@@ -122,6 +215,19 @@ export class StockEntryDto implements StockEntryPayload {
         (dto) => {
             if (!Array.isArray(dto.items)) return true;
             const ids = dto.items.map((item) => item?.productId);
+            return new Set(ids).size === ids.length;
+        },
+    )
+    @stockRule(
+        'uniqueStockSkus',
+        'A SKU can appear only once in a stock entry.',
+        (dto) => {
+            if (!Array.isArray(dto.items)) return true;
+            const ids = dto.items.flatMap((item) =>
+                Array.isArray(item?.combinations)
+                    ? item.combinations.map((combination) => combination?.skuId)
+                    : [],
+            );
             return new Set(ids).size === ids.length;
         },
     )
@@ -155,4 +261,9 @@ export class StockEntryFilterDto implements StockEntryFilter {
     @IsOptional()
     @IsUUID('4')
     supplierId?: string;
+
+    @Transform(trimString)
+    @IsOptional()
+    @IsUUID('4')
+    skuId?: string;
 }

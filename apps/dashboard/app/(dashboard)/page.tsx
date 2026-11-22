@@ -138,6 +138,36 @@ export default function OverviewPage(): React.JSX.Element {
                         </span>
                         <span className="action-arrow" aria-hidden="true">→</span>
                     </Link>
+                    <Link className="action-card" href="/families">
+                        <span className="action-icon" aria-hidden="true">◇</span>
+                        <span>
+                            <strong className="action-title">{t('viewFamilies')}</strong>
+                            <span className="action-description">
+                                {t('viewFamiliesDescription')}
+                            </span>
+                        </span>
+                        <span className="action-arrow" aria-hidden="true">→</span>
+                    </Link>
+                    <Link className="action-card" href="/offers">
+                        <span className="action-icon" aria-hidden="true">％</span>
+                        <span>
+                            <strong className="action-title">{t('viewOffers')}</strong>
+                            <span className="action-description">
+                                {t('viewOffersDescription')}
+                            </span>
+                        </span>
+                        <span className="action-arrow" aria-hidden="true">→</span>
+                    </Link>
+                    <Link className="action-card" href="/pos">
+                        <span className="action-icon" aria-hidden="true">▤</span>
+                        <span>
+                            <strong className="action-title">{t('viewPos')}</strong>
+                            <span className="action-description">
+                                {t('viewPosDescription')}
+                            </span>
+                        </span>
+                        <span className="action-arrow" aria-hidden="true">→</span>
+                    </Link>
                     {isSystemAdmin ? (
                         <Link className="action-card" href="/admins">
                             <span className="action-icon" aria-hidden="true">◎</span>
@@ -150,10 +180,10 @@ export default function OverviewPage(): React.JSX.Element {
                             <span className="action-arrow" aria-hidden="true">→</span>
                         </Link>
                     ) : null}
-                    <Link className="action-card" href="/change-password">
+                    <Link className="action-card" href="/profile">
                         <span className="action-icon" aria-hidden="true">⌁</span>
                         <span>
-                            <strong className="action-title">{t('navChangePassword')}</strong>
+                            <strong className="action-title">{t('navProfile')}</strong>
                             <span className="action-description">
                                 {t('changePasswordDescription')}
                             </span>

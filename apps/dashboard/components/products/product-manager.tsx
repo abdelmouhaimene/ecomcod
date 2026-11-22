@@ -3,7 +3,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { AdminRole, type ProductPayload, type PublicProduct, type PublicCategory } from '@repo/types';
+import {
+    AdminRole,
+    SIZE_TEXT_VALUES,
+    VARIANT_TYPES,
+    type ProductPayload,
+    type PublicCategory,
+    type PublicFamily,
+    type PublicProduct,
+    type PublicProductSku,
+    type VariantType,
+} from '@repo/types';
 import { AdminApiError, adminApi, resolveMediaUrl } from '../../lib/admin-api';
 import type { TranslationKey } from '../../lib/i18n';
 import { useAuth } from '../providers/auth-provider';
@@ -18,12 +28,18 @@ interface ImageDraft {
     position: number;
 }
 
+interface VariantValueDraft {
+    key: string;
+    value: string;
+    hexColor: string;
+    imageKey: string;
+}
+
 interface VariantDraft {
     key: string;
     name: string;
-    value: string;
-    price: string;
-    imageKey: string;
+    variantType: VariantType;
+    values: VariantValueDraft[];
 }
 
 interface ProductFormState {
@@ -38,12 +54,20 @@ interface ProductFormState {
     fakeSolds: string;
     realSolds: string;
     categoryIds: string[];
+    familyIds: string[];
     images: ImageDraft[];
     variants: VariantDraft[];
 }
 
 function apiMessage(caught: unknown, fallback: string): string {
     return caught instanceof AdminApiError ? caught.message : fallback;
+}
+
+/** Active SKUs are the source of truth for the stock shown in the product list. */
+function activeStockTotal(product: PublicProduct): number {
+    return product.skus
+        .filter((sku) => sku.isActive)
+        .reduce((total, sku) => total + sku.stockQuantity, 0);
 }
 
 let tempKeyCounter = 0;
@@ -66,6 +90,7 @@ function createEmptyForm(): ProductFormState {
         fakeSolds: '0',
         realSolds: '0',
         categoryIds: [],
+        familyIds: [],
         images: [],
         variants: [],
     };
@@ -84,6 +109,7 @@ function productToForm(product: PublicProduct): ProductFormState {
         fakeSolds: String(product.fakeSolds),
         realSolds: String(product.realSolds),
         categoryIds: product.categories.map((category) => category.id),
+        familyIds: product.families.map((family) => family.id),
         images: product.images.map((image) => ({
             key: image.id,
             url: image.url,
@@ -93,9 +119,13 @@ function productToForm(product: PublicProduct): ProductFormState {
         variants: product.variants.map((variant) => ({
             key: variant.id,
             name: variant.name,
-            value: variant.value,
-            price: String(variant.price),
-            imageKey: variant.imageKey || variant.imageId,
+            variantType: variant.variantType,
+            values: variant.values.map((value) => ({
+                key: value.id,
+                value: value.value,
+                hexColor: value.hexColor ?? '',
+                imageKey: value.imageKey || value.imageId || '',
+            })),
         })),
     };
 }
@@ -139,6 +169,7 @@ function buildPayload(form: ProductFormState): ProductPayload {
         fakeSolds: Number(form.fakeSolds),
         realSolds: Number(form.realSolds),
         categoryIds: form.categoryIds,
+        familyIds: form.familyIds,
         images: form.images.map((image, index) => ({
             key: image.key,
             url: image.url,
@@ -148,9 +179,16 @@ function buildPayload(form: ProductFormState): ProductPayload {
         variants: form.variants.map((variant) => ({
             key: variant.key,
             name: variant.name.trim(),
-            value: variant.value.trim(),
-            price: Number(variant.price),
-            imageKey: variant.imageKey,
+            variantType: variant.variantType,
+            values: variant.values.map((value) => ({
+                key: value.key,
+                value: value.value.trim(),
+                hexColor:
+                    variant.variantType === 'COLOR' && value.hexColor.trim() !== ''
+                        ? value.hexColor.trim()
+                        : null,
+                imageKey: value.imageKey.trim() === '' ? null : value.imageKey.trim(),
+            })),
         })),
     };
 }
@@ -212,6 +250,9 @@ interface VariantRowProps {
     images: ImageDraft[];
     t: Translate;
     onChange: (key: string, changes: Partial<VariantDraft>) => void;
+    onChangeValue: (variantKey: string, valueKey: string, changes: Partial<VariantValueDraft>) => void;
+    onAddValue: (variantKey: string) => void;
+    onRemoveValue: (variantKey: string, valueKey: string) => void;
     onRemove: (key: string) => void;
 }
 
@@ -220,6 +261,9 @@ function VariantRow({
     images,
     t,
     onChange,
+    onChangeValue,
+    onAddValue,
+    onRemoveValue,
     onRemove,
 }: VariantRowProps): React.JSX.Element {
     const orderedImages = [...images].sort(
@@ -227,71 +271,143 @@ function VariantRow({
     );
 
     return (
-        <div className="variant-row">
-            <div className="field">
-                <label className="field-label" htmlFor={`variant-name-${variant.key}`}>
-                    {t('variantName')}
-                </label>
-                <input
-                    id={`variant-name-${variant.key}`}
-                    className="field-input"
-                    value={variant.name}
-                    onChange={(event) => onChange(variant.key, { name: event.target.value })}
-                />
-            </div>
-            <div className="field">
-                <label className="field-label" htmlFor={`variant-value-${variant.key}`}>
-                    {t('variantValue')}
-                </label>
-                <input
-                    id={`variant-value-${variant.key}`}
-                    className="field-input"
-                    value={variant.value}
-                    onChange={(event) => onChange(variant.key, { value: event.target.value })}
-                />
-            </div>
-            <div className="field">
-                <label className="field-label" htmlFor={`variant-price-${variant.key}`}>
-                    {t('variantPrice')}
-                </label>
-                <input
-                    id={`variant-price-${variant.key}`}
-                    className="field-input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={variant.price}
-                    onChange={(event) => onChange(variant.key, { price: event.target.value })}
-                />
-            </div>
-            <div className="field">
-                <label className="field-label" htmlFor={`variant-image-${variant.key}`}>
-                    {t('variantImage')}
-                </label>
-                <select
-                    id={`variant-image-${variant.key}`}
-                    className="field-input"
-                    value={variant.imageKey}
-                    onChange={(event) => onChange(variant.key, { imageKey: event.target.value })}
-                >
-                    <option value="">{t('selectImage')}</option>
-                    {orderedImages.map((image, index) => (
-                        <option key={image.key} value={image.key}>
-                            {`${t('imageNumber')} ${index + 1}`}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div className="variant-actions">
+        <article className="variant-card">
+            <div className="variant-card-header">
+                <div className="field">
+                    <label className="field-label" htmlFor={`variant-name-${variant.key}`}>
+                        {t('variantName')}
+                    </label>
+                    <input
+                        id={`variant-name-${variant.key}`}
+                        className="field-input"
+                        value={variant.name}
+                        onChange={(event) => onChange(variant.key, { name: event.target.value })}
+                    />
+                </div>
+                <div className="field">
+                    <label className="field-label" htmlFor={`variant-type-${variant.key}`}>
+                        {t('variantType')}
+                    </label>
+                    <select
+                        id={`variant-type-${variant.key}`}
+                        className="field-input"
+                        value={variant.variantType}
+                        onChange={(event) =>
+                            onChange(variant.key, { variantType: event.target.value as VariantType })
+                        }
+                    >
+                        {VARIANT_TYPES.map((type) => (
+                            <option key={type} value={type}>
+                                {t(`variantType${type}` as TranslationKey)}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <button
                     type="button"
-                    className="button danger small"
+                    className="button danger small variant-remove"
                     onClick={() => onRemove(variant.key)}
                 >
                     {t('removeVariant')}
                 </button>
             </div>
-        </div>
+
+            <div className="variant-values">
+                <span className="field-label">{t('variantValuesLabel')}</span>
+                {variant.values.map((value) => (
+                    <div className="variant-value-row" key={value.key}>
+                        <div className="field">
+                            <label className="field-label" htmlFor={`variant-value-${value.key}`}>
+                                {t('variantValue')}
+                            </label>
+                            <input
+                                id={`variant-value-${value.key}`}
+                                className="field-input"
+                                list={variant.variantType === 'SIZE_TEXT' ? `size-values-${variant.key}` : undefined}
+                                value={value.value}
+                                onChange={(event) =>
+                                    onChangeValue(variant.key, value.key, { value: event.target.value })
+                                }
+                            />
+                            {variant.variantType === 'SIZE_TEXT' ? (
+                                <datalist id={`size-values-${variant.key}`}>
+                                    {SIZE_TEXT_VALUES.map((size) => (
+                                        <option key={size} value={size} />
+                                    ))}
+                                </datalist>
+                            ) : null}
+                        </div>
+                        {variant.variantType === 'COLOR' ? (
+                            <div className="field">
+                                <label className="field-label" htmlFor={`variant-color-${value.key}`}>
+                                    {t('hexColor')}
+                                </label>
+                                <div className="color-input-group">
+                                    <span
+                                        className="color-swatch"
+                                        style={{ backgroundColor: value.hexColor || '#ffffff' }}
+                                        aria-hidden="true"
+                                    />
+                                    <input
+                                        id={`variant-color-${value.key}`}
+                                        className="field-input"
+                                        type="color"
+                                        value={/^#[0-9A-Fa-f]{6}$/.test(value.hexColor) ? value.hexColor : '#000000'}
+                                        onChange={(event) =>
+                                            onChangeValue(variant.key, value.key, { hexColor: event.target.value })
+                                        }
+                                    />
+                                    <input
+                                        className="field-input color-hex-input"
+                                        value={value.hexColor}
+                                        placeholder="#RRGGBB"
+                                        aria-label={t('hexColor')}
+                                        onChange={(event) =>
+                                            onChangeValue(variant.key, value.key, { hexColor: event.target.value })
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        ) : null}
+                        <div className="field">
+                            <label className="field-label" htmlFor={`variant-image-${value.key}`}>
+                                {t('variantImage')}
+                            </label>
+                            <select
+                                id={`variant-image-${value.key}`}
+                                className="field-input"
+                                value={value.imageKey}
+                                onChange={(event) =>
+                                    onChangeValue(variant.key, value.key, { imageKey: event.target.value })
+                                }
+                            >
+                                <option value="">{t('selectImage')}</option>
+                                {orderedImages.map((image, index) => (
+                                    <option key={image.key} value={image.key}>
+                                        {`${t('imageNumber')} ${index + 1}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <button
+                            type="button"
+                            className="button danger small variant-value-remove"
+                            onClick={() => onRemoveValue(variant.key, value.key)}
+                            aria-label={t('removeVariantValue')}
+                        >
+                            ×
+                        </button>
+                    </div>
+                ))}
+                <button
+                    type="button"
+                    className="button secondary small"
+                    onClick={() => onAddValue(variant.key)}
+                >
+                    {t('addVariantValue')}
+                </button>
+            </div>
+        </article>
     );
 }
 
@@ -303,6 +419,7 @@ export function ProductManager(): React.JSX.Element {
 
     const [products, setProducts] = useState<PublicProduct[]>([]);
     const [categories, setCategories] = useState<PublicCategory[]>([]);
+    const [families, setFamilies] = useState<PublicFamily[]>([]);
     const [loading, setLoading] = useState(true);
     const [listError, setListError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
@@ -321,12 +438,14 @@ export function ProductManager(): React.JSX.Element {
         setLoading(true);
         setListError(null);
         try {
-            const [productList, categoryList] = await Promise.all([
+            const [productList, categoryList, familyList] = await Promise.all([
                 adminApi.listProducts(),
                 adminApi.listCategories(),
+                adminApi.listFamilies(),
             ]);
             setProducts(productList);
             setCategories(categoryList);
+            setFamilies(familyList);
         } catch (caught) {
             setListError(apiMessage(caught, t('loadProductsError')));
         } finally {
@@ -361,6 +480,12 @@ export function ProductManager(): React.JSX.Element {
     const integerFormatter = new Intl.NumberFormat(locale);
     const formatDate = (value: string) => dateFormatter.format(new Date(value));
 
+    /** SKUs are generated by the API on save; show the persisted ones while editing. */
+    const editingSkus: PublicProductSku[] =
+        editingId === null
+            ? []
+            : (products.find((product) => product.id === editingId)?.skus ?? []);
+
     const resetForm = () => {
         setEditingId(null);
         setForm(createEmptyForm());
@@ -388,12 +513,19 @@ export function ProductManager(): React.JSX.Element {
         setFormOpen(true);
     };
 
-    const toggleCategory = (id: string) => {
+    const handleCategoryChange = (event: ChangeEvent<HTMLSelectElement>) => {
+        const categoryIds = Array.from(event.target.options)
+            .filter((option) => option.selected)
+            .map((option) => option.value);
+        setForm((current) => ({ ...current, categoryIds }));
+    };
+
+    const toggleFamily = (id: string) => {
         setForm((current) => ({
             ...current,
-            categoryIds: current.categoryIds.includes(id)
-                ? current.categoryIds.filter((value) => value !== id)
-                : [...current.categoryIds, id],
+            familyIds: current.familyIds.includes(id)
+                ? current.familyIds.filter((value) => value !== id)
+                : [...current.familyIds, id],
         }));
     };
 
@@ -423,12 +555,22 @@ export function ProductManager(): React.JSX.Element {
             return {
                 ...current,
                 images,
-                variants: current.variants.map((variant) =>
-                    variant.imageKey === key ? { ...variant, imageKey: '' } : variant,
-                ),
+                variants: current.variants.map((variant) => ({
+                    ...variant,
+                    values: variant.values.map((value) =>
+                        value.imageKey === key ? { ...value, imageKey: '' } : value,
+                    ),
+                })),
             };
         });
     };
+
+    const makeValueDraft = (): VariantValueDraft => ({
+        key: nextTempKey('variant-value'),
+        value: '',
+        hexColor: '',
+        imageKey: '',
+    });
 
     const addVariant = () => {
         setForm((current) => ({
@@ -438,9 +580,8 @@ export function ProductManager(): React.JSX.Element {
                 {
                     key: nextTempKey('variant'),
                     name: '',
-                    value: '',
-                    price: '',
-                    imageKey: '',
+                    variantType: 'OTHER',
+                    values: [makeValueDraft()],
                 },
             ],
         }));
@@ -449,9 +590,14 @@ export function ProductManager(): React.JSX.Element {
     const changeVariant = (key: string, changes: Partial<VariantDraft>) => {
         setForm((current) => ({
             ...current,
-            variants: current.variants.map((variant) =>
-                variant.key === key ? { ...variant, ...changes } : variant,
-            ),
+            variants: current.variants.map((variant) => {
+                if (variant.key !== key) return variant;
+                const next = { ...variant, ...changes };
+                if (changes.variantType !== undefined && changes.variantType !== 'COLOR') {
+                    next.values = variant.values.map((value) => ({ ...value, hexColor: '' }));
+                }
+                return next;
+            }),
         }));
     };
 
@@ -462,30 +608,74 @@ export function ProductManager(): React.JSX.Element {
         }));
     };
 
+    const addVariantValue = (variantKey: string) => {
+        setForm((current) => ({
+            ...current,
+            variants: current.variants.map((variant) =>
+                variant.key === variantKey
+                    ? { ...variant, values: [...variant.values, makeValueDraft()] }
+                    : variant,
+            ),
+        }));
+    };
+
+    const changeVariantValue = (
+        variantKey: string,
+        valueKey: string,
+        changes: Partial<VariantValueDraft>,
+    ) => {
+        setForm((current) => ({
+            ...current,
+            variants: current.variants.map((variant) =>
+                variant.key === variantKey
+                    ? {
+                        ...variant,
+                        values: variant.values.map((value) =>
+                            value.key === valueKey ? { ...value, ...changes } : value,
+                        ),
+                    }
+                    : variant,
+            ),
+        }));
+    };
+
+    const removeVariantValue = (variantKey: string, valueKey: string) => {
+        setForm((current) => ({
+            ...current,
+            variants: current.variants.map((variant) =>
+                variant.key === variantKey
+                    ? { ...variant, values: variant.values.filter((value) => value.key !== valueKey) }
+                    : variant,
+            ),
+        }));
+    };
+
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+        const files = Array.from(event.target.files ?? []);
         event.target.value = '';
-        if (!file) return;
+        if (files.length === 0) return;
 
         setFormError(null);
         setUploading(true);
         try {
-            const response = await adminApi.uploadImage(file);
-            setForm((current) => {
-                const hasMain = current.images.some((image) => image.isMain);
-                return {
-                    ...current,
-                    images: [
-                        ...current.images,
-                        {
-                            key: nextTempKey('image'),
-                            url: response.url,
-                            isMain: !hasMain,
-                            position: current.images.length,
-                        },
-                    ],
-                };
-            });
+            for (const file of files) {
+                const response = await adminApi.uploadImage(file);
+                setForm((current) => {
+                    const hasMain = current.images.some((image) => image.isMain);
+                    return {
+                        ...current,
+                        images: [
+                            ...current.images,
+                            {
+                                key: nextTempKey('image'),
+                                url: response.url,
+                                isMain: !hasMain,
+                                position: current.images.length,
+                            },
+                        ],
+                    };
+                });
+            }
             setNotice(t('imageUploaded'));
         } catch (caught) {
             setFormError(apiMessage(caught, t('uploadImageError')));
@@ -536,17 +726,30 @@ export function ProductManager(): React.JSX.Element {
             return;
         }
         for (const variant of form.variants) {
-            if (variant.name.trim() === '' || variant.value.trim() === '') {
-                setFormError(t('required'));
+            if (variant.name.trim() === '' || variant.values.length === 0) {
+                setFormError(t('variantDefinitionInvalid'));
                 return;
             }
-            if (!isNonNegativeNumber(variant.price)) {
-                setFormError(t('priceInvalid'));
-                return;
-            }
-            if (!form.images.some((image) => image.key === variant.imageKey)) {
-                setFormError(t('variantImageRequired'));
-                return;
+            for (const value of variant.values) {
+                if (value.value.trim() === '') {
+                    setFormError(t('variantValueRequired'));
+                    return;
+                }
+                if (variant.variantType === 'SIZE_TEXT' && !SIZE_TEXT_VALUES.includes(value.value.trim().toUpperCase() as never)) {
+                    setFormError(t('sizeTextInvalid'));
+                    return;
+                }
+                if (variant.variantType === 'SIZE_NUM' && !/^\d+(\.\d{1,2})?$/.test(value.value.trim())) {
+                    setFormError(t('sizeNumInvalid'));
+                    return;
+                }
+                if (
+                    variant.variantType === 'COLOR' &&
+                    !/^#[0-9A-Fa-f]{6}$/.test(value.hexColor.trim())
+                ) {
+                    setFormError(t('hexColorInvalid'));
+                    return;
+                }
             }
         }
 
@@ -708,8 +911,10 @@ export function ProductManager(): React.JSX.Element {
                                     <th scope="col" className="column-center">{t('columnStock')}</th>
                                     <th scope="col" className="column-right">{t('columnPmp')}</th>
                                     <th scope="col">{t('columnCategories')}</th>
+                                    <th scope="col">{t('familiesLabel')}</th>
                                     <th scope="col" className="column-center">{t('columnImages')}</th>
                                     <th scope="col" className="column-center">{t('columnVariants')}</th>
+                                    <th scope="col">{t('columnSkus')}</th>
                                     <th scope="col">{t('createdAt')}</th>
                                     {canManage ? <th scope="col" className="column-actions">{t('actions')}</th> : null}
                                 </tr>
@@ -757,6 +962,19 @@ export function ProductManager(): React.JSX.Element {
                                                 )}
                                             </div>
                                         </td>
+                                        <td>
+                                            <div className="category-tags">
+                                                {product.families.length === 0 ? (
+                                                    <span className="muted">—</span>
+                                                ) : (
+                                                    product.families.map((family) => (
+                                                        <span className="family-tag" key={family.id}>
+                                                            {family.name}
+                                                        </span>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="text-center">
                                             <span className="count-badge">
                                                 {product.images.length}
@@ -764,6 +982,17 @@ export function ProductManager(): React.JSX.Element {
                                         </td>
                                         <td className="muted text-center">
                                             {product.variants.length}
+                                        </td>
+                                        <td>
+                                            <span
+                                                className={
+                                                    activeStockTotal(product) > 0
+                                                        ? 'stock-badge in-stock'
+                                                        : 'stock-badge out-of-stock'
+                                                }
+                                            >
+                                                {integerFormatter.format(activeStockTotal(product))}
+                                            </span>
                                         </td>
                                         <td className="muted table-date">
                                             {formatDate(product.createdAt)}
@@ -977,25 +1206,49 @@ export function ProductManager(): React.JSX.Element {
                         <p className="field-hint">{t('realMetricsHint')}</p>
 
                         <div className="field">
-                            <span className="field-label">{t('categoriesLabel')}</span>
+                            <label className="field-label" htmlFor="product-categories">
+                                {t('categoriesLabel')}
+                            </label>
                             <p className="field-hint">{t('categoriesHint')}</p>
+                            <select
+                                id="product-categories"
+                                className="field-input"
+                                multiple
+                                value={form.categoryIds}
+                                onChange={handleCategoryChange}
+                            >
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="field">
+                            <span className="field-label">{t('familiesLabel')}</span>
+                            <p className="field-hint">{t('familiesHint')}</p>
                             <div className="chip-select">
-                                {categories.map((category) => {
-                                    const selected = form.categoryIds.includes(category.id);
-                                    return (
-                                        <label
-                                            key={category.id}
-                                            className={selected ? 'chip selected' : 'chip'}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={selected}
-                                                onChange={() => toggleCategory(category.id)}
-                                            />
-                                            <span>{category.name}</span>
-                                        </label>
-                                    );
-                                })}
+                                {families.length === 0 ? (
+                                    <span className="muted">{t('familiesEmptyHint')}</span>
+                                ) : (
+                                    families.map((family) => {
+                                        const selected = form.familyIds.includes(family.id);
+                                        return (
+                                            <label
+                                                key={family.id}
+                                                className={selected ? 'chip selected' : 'chip'}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selected}
+                                                    onChange={() => toggleFamily(family.id)}
+                                                />
+                                                <span>{family.name}</span>
+                                            </label>
+                                        );
+                                    })
+                                )}
                             </div>
                         </div>
 
@@ -1011,10 +1264,11 @@ export function ProductManager(): React.JSX.Element {
                                     className="sr-only"
                                     type="file"
                                     accept="image/png,image/jpeg,image/webp,image/gif"
+                                    multiple
                                     aria-label={t('imageFileLabel')}
                                     onChange={(event) => void handleFileChange(event)}
                                 />
-                                <span className="field-hint">{t('uploadHint')}</span>
+                                <span className="field-hint">{t('uploadMultipleHint')}</span>
                             </div>
                             {form.images.length === 0 ? (
                                 <p className="state-text">{t('noImages')}</p>
@@ -1046,6 +1300,10 @@ export function ProductManager(): React.JSX.Element {
                                 </button>
                             </div>
                             <p className="field-hint">{t('variantsHint')}</p>
+                            <div className="notice info variant-price-note" role="note">
+                                <strong className="notice-title">{t('variantNoPriceTitle')}</strong>
+                                <span>{t('variantNoPriceNote')}</span>
+                            </div>
                             {form.variants.length === 0 ? (
                                 <p className="state-text">{t('noVariants')}</p>
                             ) : (
@@ -1057,12 +1315,62 @@ export function ProductManager(): React.JSX.Element {
                                             images={form.images}
                                             t={t}
                                             onChange={changeVariant}
+                                            onChangeValue={changeVariantValue}
+                                            onAddValue={addVariantValue}
+                                            onRemoveValue={removeVariantValue}
                                             onRemove={removeVariant}
                                         />
                                     ))}
                                 </div>
                             )}
                         </div>
+
+                        {editingId !== null ? (
+                            <div className="field">
+                                <span className="field-label">{t('skusLabel')}</span>
+                                <p className="field-hint">{t('skusHint')}</p>
+                                {editingSkus.length === 0 ? (
+                                    <p className="state-text">{t('skusEmpty')}</p>
+                                ) : (
+                                    <div className="table-scroll">
+                                        <table className="data-table sku-table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">{t('columnSku')}</th>
+                                                    <th scope="col">{t('skuLabel')}</th>
+                                                    <th scope="col" className="column-right">{t('columnStock')}</th>
+                                                    <th scope="col" className="column-right">{t('columnPmp')}</th>
+                                                    <th scope="col">{t('status')}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {editingSkus.map((sku) => (
+                                                    <tr key={sku.id}>
+                                                        <td><strong className="table-ref">{sku.sku}</strong></td>
+                                                        <td>{sku.label || '—'}</td>
+                                                        <td className="table-price text-right">
+                                                            {integerFormatter.format(sku.stockQuantity)}
+                                                        </td>
+                                                        <td className="table-price text-right">
+                                                            {numberFormatter.format(sku.PMP)}
+                                                        </td>
+                                                        <td>
+                                                            <span
+                                                                className={
+                                                                    sku.isActive ? 'badge active' : 'badge inactive'
+                                                                }
+                                                            >
+                                                                {sku.isActive ? t('active') : t('inactive')}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
 
                         <div className="form-actions">
                             <button type="button" className="button secondary" onClick={resetForm}>

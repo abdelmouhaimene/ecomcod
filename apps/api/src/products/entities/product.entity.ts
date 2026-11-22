@@ -4,13 +4,16 @@ import {
     CreateDateColumn,
     Entity,
     Index,
+    ManyToMany,
     OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { numericTransformer } from '../../common/transformers.js';
+import type { Family } from '../../families/entities/family.entity.js';
 import type { ProductCategory } from './product-category.entity.js';
 import type { ProductImage } from './product-image.entity.js';
+import type { ProductSku } from './product-sku.entity.js';
 import type { ProductVariant } from './product-variant.entity.js';
 
 @Entity('products')
@@ -98,11 +101,18 @@ export class Product {
     @OneToMany('ProductCategory', 'product')
     productCategories: ProductCategory[];
 
+    /** Separate many-to-many grouping; categories above stay unchanged. */
+    @ManyToMany('Family', 'products')
+    families: Family[];
+
     @OneToMany('ProductImage', 'product')
     images: ProductImage[];
 
     @OneToMany('ProductVariant', 'product')
     variants: ProductVariant[];
+
+    @OneToMany('ProductSku', 'product')
+    skus: ProductSku[];
 
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;

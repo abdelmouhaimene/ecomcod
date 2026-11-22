@@ -6,11 +6,18 @@ import {
   type CategoryPayload,
   type ChangeAdminPasswordPayload,
   type CreateAdminPayload,
+  type FamilyPayload,
   type MessageResponse,
+  type OfferPayload,
+  type OrderPayload,
   type ProductPayload,
   type PublicAdmin,
   type PublicCategory,
+  type PublicFamily,
+  type PublicOffer,
+  type PublicOrder,
   type PublicProduct,
+  type PublicStockAvailability,
   type PublicStockEntry,
   type PublicSupplier,
   type PublicUser,
@@ -26,13 +33,21 @@ export { AdminRole };
 /** Catalog contracts used by the dashboard editors. */
 export type {
   CategoryPayload,
+  FamilyPayload,
+  OfferPayload,
+  OrderPayload,
   ProductImagePayload,
   ProductPayload,
   ProductVariantPayload,
   PublicCategory,
+  PublicFamily,
+  PublicOffer,
+  PublicOrder,
   PublicProduct,
   PublicProductImage,
+  PublicProductSku,
   PublicProductVariant,
+  PublicStockAvailability,
   PublicStockEntry,
   PublicSupplier,
   StockEntryFilter,
@@ -149,6 +164,33 @@ export const adminApi = {
   removeProduct: (id: string) =>
     adminFetch<void>(`/v1/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
+  // Families (separate from categories; system/manager may mutate).
+  listFamilies: () => adminFetch<PublicFamily[]>('/v1/admin/families'),
+  getFamily: (id: string) =>
+    adminFetch<PublicFamily>(`/v1/admin/families/${encodeURIComponent(id)}`),
+  createFamily: (payload: FamilyPayload) =>
+    adminFetch<PublicFamily>('/v1/admin/families', { method: 'POST', body: payload }),
+  updateFamily: (id: string, payload: FamilyPayload) =>
+    adminFetch<PublicFamily>(`/v1/admin/families/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: payload,
+    }),
+  removeFamily: (id: string) =>
+    adminFetch<void>(`/v1/admin/families/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Offers (single-product and pack promotions; system/manager may mutate).
+  listOffers: () => adminFetch<PublicOffer[]>('/v1/admin/offers'),
+  getOffer: (id: string) => adminFetch<PublicOffer>(`/v1/admin/offers/${encodeURIComponent(id)}`),
+  createOffer: (payload: OfferPayload) =>
+    adminFetch<PublicOffer>('/v1/admin/offers', { method: 'POST', body: payload }),
+  updateOffer: (id: string, payload: OfferPayload) =>
+    adminFetch<PublicOffer>(`/v1/admin/offers/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: payload,
+    }),
+  removeOffer: (id: string) =>
+    adminFetch<void>(`/v1/admin/offers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
   // Suppliers (all active admins may read; system/manager may mutate).
   listSuppliers: () => adminFetch<PublicSupplier[]>('/v1/admin/suppliers'),
   createSupplier: (payload: SupplierPayload) =>
@@ -167,6 +209,7 @@ export const adminApi = {
     if (filter.month !== undefined) params.set('month', String(filter.month));
     if (filter.year !== undefined) params.set('year', String(filter.year));
     if (filter.productId) params.set('productId', filter.productId);
+    if (filter.skuId) params.set('skuId', filter.skuId);
     if (filter.supplierId) params.set('supplierId', filter.supplierId);
     const query = params.toString();
     return adminFetch<PublicStockEntry[]>(
@@ -177,6 +220,16 @@ export const adminApi = {
     adminFetch<PublicStockEntry>('/v1/admin/stock-entries', { method: 'POST', body: payload }),
   removeStockEntry: (id: string) =>
     adminFetch<void>(`/v1/admin/stock-entries/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  /** Live per-SKU stock snapshot used by stock and POS pickers. */
+  listStockAvailability: () =>
+    adminFetch<PublicStockAvailability[]>('/v1/admin/stock/availability'),
+
+  // POS orders (readable by all active admins; system/manager may create).
+  listPosOrders: () => adminFetch<PublicOrder[]>('/v1/admin/pos/orders'),
+  getPosOrder: (id: string) =>
+    adminFetch<PublicOrder>(`/v1/admin/pos/orders/${encodeURIComponent(id)}`),
+  createPosOrder: (payload: OrderPayload) =>
+    adminFetch<PublicOrder>('/v1/admin/pos/orders', { method: 'POST', body: payload }),
 
   uploadImage: (file: File) => {
     const formData = new FormData();

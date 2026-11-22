@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     AdminRole,
     type PublicProduct,
+    type PublicProductSku,
+    type PublicStockAvailability,
     type PublicStockEntry,
     type PublicSupplier,
     type StockEntryFilter,
@@ -12,11 +14,17 @@ import { AdminApiError, adminApi } from '../../lib/admin-api';
 import { useAuth } from '../providers/auth-provider';
 import { useDashboard } from '../providers/dashboard-provider';
 
+interface CombinationDraft {
+    skuId: string;
+    quantity: string;
+}
+
 interface LineDraft {
     key: string;
     productId: string;
-    quantity: string;
-    unitPrice: string;
+    buyingPrice: string;
+    totalQuantity: string;
+    combinations: CombinationDraft[];
 }
 
 interface StockFormState {
@@ -36,11 +44,25 @@ function nextTempKey(): string {
     return `line-temp-${Date.now()}-${tempKeyCounter}`;
 }
 
+function activeSkus(product: PublicProduct | undefined): PublicProductSku[] {
+    return (product?.skus ?? []).filter((sku) => sku.isActive);
+}
+
+function makeLine(product: PublicProduct | undefined = undefined): LineDraft {
+    return {
+        key: nextTempKey(),
+        productId: product?.id ?? '',
+        buyingPrice: '',
+        totalQuantity: '1',
+        combinations: activeSkus(product).map((sku) => ({ skuId: sku.id, quantity: '0' })),
+    };
+}
+
 function createEmptyForm(supplierId = ''): StockFormState {
     return {
         date: new Date().toISOString().slice(0, 10),
         supplierId,
-        lines: [{ key: nextTempKey(), productId: '', quantity: '1', unitPrice: '' }],
+        lines: [makeLine()],
     };
 }
 
@@ -48,9 +70,30 @@ function isPositiveInteger(value: string): boolean {
     return /^\d+$/.test(value.trim()) && Number(value) > 0;
 }
 
+function isNonNegativeInteger(value: string): boolean {
+    return /^\d+$/.test(value.trim());
+}
+
 function isMoney(value: string): boolean {
     const trimmed = value.trim();
     return /^\d+(\.\d{1,2})?$/.test(trimmed) && Number.isFinite(Number(trimmed));
+}
+
+function buildYearOptions(startYear = 2026): string[] {
+    const currentYear = new Date().getFullYear();
+    if (currentYear < startYear) return [];
+    return Array.from({ length: currentYear - startYear + 1 }, (_, index) => String(startYear + index));
+}
+
+function combinationSum(line: LineDraft): number {
+    return line.combinations.reduce((sum, combination) => {
+        return sum + (isNonNegativeInteger(combination.quantity) ? Number(combination.quantity) : 0);
+    }, 0);
+}
+
+function lineTotal(line: LineDraft): number {
+    if (!isPositiveInteger(line.totalQuantity) || !isMoney(line.buyingPrice)) return 0;
+    return Number(line.totalQuantity) * Number(line.buyingPrice);
 }
 
 export function StockManager(): React.JSX.Element {
@@ -62,11 +105,13 @@ export function StockManager(): React.JSX.Element {
     const [entries, setEntries] = useState<PublicStockEntry[]>([]);
     const [products, setProducts] = useState<PublicProduct[]>([]);
     const [suppliers, setSuppliers] = useState<PublicSupplier[]>([]);
+    const [availability, setAvailability] = useState<PublicStockAvailability[]>([]);
     const [loading, setLoading] = useState(true);
     const [listError, setListError] = useState<string | null>(null);
     const [month, setMonth] = useState('');
     const [year, setYear] = useState('');
     const [productFilter, setProductFilter] = useState('');
+    const [skuFilter, setSkuFilter] = useState('');
     const [supplierFilter, setSupplierFilter] = useState('');
     const [formOpen, setFormOpen] = useState(false);
     const [form, setForm] = useState<StockFormState>(() => createEmptyForm());
@@ -88,14 +133,16 @@ export function StockManager(): React.JSX.Element {
             ...(supplierFilter !== '' ? { supplierId: supplierFilter } : {}),
         };
         try {
-            const [entryList, productList, supplierList] = await Promise.all([
+            const [entryList, productList, supplierList, availabilityList] = await Promise.all([
                 adminApi.listStockEntries(filter),
                 adminApi.listProducts(),
                 adminApi.listSuppliers(),
+                adminApi.listStockAvailability(),
             ]);
             setEntries(entryList);
             setProducts(productList);
             setSuppliers(supplierList);
+            setAvailability(availabilityList);
         } catch (caught) {
             setListError(apiMessage(caught, t('loadStockError')));
         } finally {
@@ -111,9 +158,34 @@ export function StockManager(): React.JSX.Element {
         () => new Map(products.map((product) => [product.id, product])),
         [products],
     );
+    const skuById = useMemo(() => {
+        const map = new Map<string, PublicProductSku>();
+        for (const product of products) {
+            for (const sku of product.skus) map.set(sku.id, sku);
+        }
+        return map;
+    }, [products]);
     const supplierById = useMemo(
         () => new Map(suppliers.map((supplier) => [supplier.id, supplier])),
         [suppliers],
+    );
+    const availabilityBySku = useMemo(
+        () => new Map(availability.map((item) => [item.skuId, item])),
+        [availability],
+    );
+    const sortedProducts = useMemo(
+        () => [...products].sort((a, b) => a.name.localeCompare(b.name) || a.ref.localeCompare(b.ref)),
+        [products],
+    );
+    const sortedAvailability = useMemo(
+        () => [...availability].sort((a, b) => a.productName.localeCompare(b.productName) || a.sku.localeCompare(b.sku)),
+        [availability],
+    );
+    const filteredAvailability = useMemo(
+        () => skuFilter === ''
+            ? sortedAvailability
+            : sortedAvailability.filter((item) => item.skuId === skuFilter),
+        [sortedAvailability, skuFilter],
     );
 
     const numberFormatter = new Intl.NumberFormat(locale, {
@@ -133,10 +205,9 @@ export function StockManager(): React.JSX.Element {
         })),
         [monthFormatter],
     );
-    const years = useMemo(() => {
-        const current = new Date().getFullYear();
-        return Array.from({ length: 6 }, (_, index) => String(current - index));
-    }, []);
+    const years = useMemo(() => buildYearOptions(), []);
+
+    const formTotal = form.lines.reduce((sum, line) => sum + lineTotal(line), 0);
 
     const resetForm = () => {
         setFormOpen(false);
@@ -155,6 +226,15 @@ export function StockManager(): React.JSX.Element {
         setFormOpen(true);
     };
 
+    const selectProduct = (key: string, productId: string) => {
+        setForm((current) => ({
+            ...current,
+            lines: current.lines.map((line) =>
+                line.key === key ? makeLine(productById.get(productId)) : line,
+            ),
+        }));
+    };
+
     const changeLine = (key: string, changes: Partial<LineDraft>) => {
         setForm((current) => ({
             ...current,
@@ -162,42 +242,76 @@ export function StockManager(): React.JSX.Element {
         }));
     };
 
-    const addLine = () => {
+    const changeCombination = (lineKey: string, skuId: string, quantity: string) => {
         setForm((current) => ({
             ...current,
-            lines: [...current.lines, { key: nextTempKey(), productId: '', quantity: '1', unitPrice: '' }],
+            lines: current.lines.map((line) =>
+                line.key === lineKey
+                    ? {
+                        ...line,
+                        combinations: line.combinations.map((combination) =>
+                            combination.skuId === skuId ? { ...combination, quantity } : combination,
+                        ),
+                    }
+                    : line,
+            ),
         }));
+    };
+
+    const addLine = () => {
+        setForm((current) => ({ ...current, lines: [...current.lines, makeLine()] }));
     };
 
     const removeLine = (key: string) => {
         setForm((current) => ({ ...current, lines: current.lines.filter((line) => line.key !== key) }));
     };
 
-    const formTotal = form.lines.reduce((sum, line) => {
-        const quantity = isPositiveInteger(line.quantity) ? Number(line.quantity) : 0;
-        const unitPrice = isMoney(line.unitPrice) ? Number(line.unitPrice) : 0;
-        return sum + quantity * unitPrice;
-    }, 0);
+    const validateForm = (): string | null => {
+        if (form.date.trim() === '') return t('stockDateRequired');
+        if (form.supplierId === '') return t('stockSupplierRequired');
+        if (form.lines.length === 0) return t('stockLinesRequired');
+
+        const productIds = form.lines.map((line) => line.productId);
+        if (new Set(productIds).size !== productIds.length) return t('stockDuplicateProduct');
+
+        for (const line of form.lines) {
+            const product = productById.get(line.productId);
+            if (!product) return t('stockProductRequired');
+
+            const expected = activeSkus(product);
+            if (expected.length === 0) return t('stockCombinationsRequired');
+            if (!isMoney(line.buyingPrice)) return t('stockBuyingPriceInvalid');
+            if (!isPositiveInteger(line.totalQuantity)) return t('stockTotalQuantityInvalid');
+
+            const skuIds = line.combinations.map((combination) => combination.skuId);
+            const expectedIds = new Set(expected.map((sku) => sku.id));
+            if (
+                skuIds.length !== expectedIds.size ||
+                new Set(skuIds).size !== skuIds.length ||
+                skuIds.some((skuId) => !expectedIds.has(skuId))
+            ) {
+                return t('stockCombinationsRequired');
+            }
+            if (line.combinations.some((combination) => !isNonNegativeInteger(combination.quantity))) {
+                return t('stockCombinationQuantityInvalid');
+            }
+
+            const sum = combinationSum(line);
+            const total = Number(line.totalQuantity);
+            if (sum !== total) {
+                return `${t('stockCombinationSumInvalid')} (${sum}/${total}).`;
+            }
+        }
+        return null;
+    };
 
     const handleSave = async () => {
         setFormError(null);
         setNotice(null);
 
-        if (form.date.trim() === '') {
-            setFormError(t('stockDateRequired'));
-            return;
-        }
-        if (form.supplierId === '') {
-            setFormError(t('stockSupplierRequired'));
-            return;
-        }
-        if (form.lines.length === 0) {
-            setFormError(t('stockLinesRequired'));
-            return;
-        }
-        if (form.lines.some((line) =>
-            line.productId === '' || !isPositiveInteger(line.quantity) || !isMoney(line.unitPrice))) {
-            setFormError(t('stockLineInvalid'));
+        const validationError = validateForm();
+        if (validationError !== null) {
+            setFormError(validationError);
             return;
         }
 
@@ -208,8 +322,12 @@ export function StockManager(): React.JSX.Element {
                 supplierId: form.supplierId,
                 items: form.lines.map((line) => ({
                     productId: line.productId,
-                    quantity: Number(line.quantity),
-                    unitPrice: Number(line.unitPrice),
+                    buyingPrice: Number(line.buyingPrice),
+                    totalQuantity: Number(line.totalQuantity),
+                    combinations: line.combinations.map((combination) => ({
+                        skuId: combination.skuId,
+                        quantity: Number(combination.quantity),
+                    })),
                 })),
             });
             resetForm();
@@ -378,9 +496,7 @@ export function StockManager(): React.JSX.Element {
                             type="button"
                             className="button secondary small"
                             onClick={resetFilters}
-                            disabled={
-                                month === '' && year === '' && productFilter === '' && supplierFilter === ''
-                            }
+                            disabled={month === '' && year === '' && productFilter === '' && supplierFilter === ''}
                         >
                             {t('resetFilters')}
                         </button>
@@ -431,14 +547,26 @@ export function StockManager(): React.JSX.Element {
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="category-tags">
+                                            <div className="stock-entry-products">
                                                 {entry.items.map((item) => (
-                                                    <span className="category-tag" key={item.id}>
-                                                        {item.productRef || productById.get(item.productId)?.ref}
-                                                        <span className="tag-quantity">
-                                                            ×{integerFormatter.format(item.quantity)}
+                                                    <div className="stock-entry-product" key={item.id}>
+                                                        <div className="stock-entry-product-head">
+                                                            <span className="category-tag">
+                                                                {item.productRef || productById.get(item.productId)?.ref}
+                                                            </span>
+                                                            <span className="tag-quantity">
+                                                                ×{integerFormatter.format(item.totalQuantity)}
+                                                            </span>
+                                                        </div>
+                                                        <span className="client-secondary">
+                                                            {productById.get(item.productId)?.name ?? item.productName}
                                                         </span>
-                                                    </span>
+                                                        <span className="stock-combination-summary">
+                                                            {item.combinations.map((combination) =>
+                                                                `${combination.skuLabel || combination.sku}: ${combination.quantity}`,
+                                                            ).join(' · ')}
+                                                        </span>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </td>
@@ -492,10 +620,91 @@ export function StockManager(): React.JSX.Element {
                 )}
             </section>
 
+            <section className="section-card table-card" aria-labelledby="stock-availability-title">
+                <h3 className="section-title" id="stock-availability-title">
+                    {t('stockAvailabilityTitle')}
+                </h3>
+                <p className="section-description">{t('stockSkuNote')}</p>
+                <div className="table-toolbar stock-toolbar">
+                    <label className="sr-only" htmlFor="stock-availability-sku-filter">{t('filterSku')}</label>
+                    <select
+                        id="stock-availability-sku-filter"
+                        className="field-input filter-select"
+                        value={skuFilter}
+                        onChange={(event) => setSkuFilter(event.target.value)}
+                        aria-label={t('filterSku')}
+                    >
+                        <option value="">{t('allSkus')}</option>
+                        {sortedAvailability.map((item) => (
+                            <option key={item.skuId} value={item.skuId}>
+                                {item.productName} — {item.label || item.sku}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="table-toolbar-meta">
+                        <span className="stat-note">{t('stockAvailabilityTitle')}: {filteredAvailability.length}</span>
+                        <button
+                            type="button"
+                            className="button secondary small"
+                            onClick={() => setSkuFilter('')}
+                            disabled={skuFilter === ''}
+                        >
+                            {t('resetFilters')}
+                        </button>
+                    </div>
+                </div>
+                {sortedAvailability.length === 0 ? (
+                    <div className="empty-state">
+                        <p className="state-text">{t('stockAvailabilityEmpty')}</p>
+                    </div>
+                ) : filteredAvailability.length === 0 ? (
+                    <div className="empty-state">
+                        <p className="state-text">{t('stockNoResults')}</p>
+                    </div>
+                ) : (
+                    <div className="table-scroll">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{t('filterProduct')}</th>
+                                    <th scope="col">{t('columnSku')}</th>
+                                    <th scope="col">{t('skuLabel')}</th>
+                                    <th scope="col" className="column-right">{t('columnStock')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredAvailability.map((item) => (
+                                    <tr key={item.skuId}>
+                                        <td>
+                                            <strong className="table-ref">{item.productRef}</strong>
+                                            <span className="client-secondary">{item.productName}</span>
+                                        </td>
+                                        <td className="table-ref">{item.sku}</td>
+                                        <td>{item.label || '—'}</td>
+                                        <td className="text-center">
+                                            <span
+                                                className={
+                                                    item.stockQuantity > 0
+                                                        ? 'stock-badge in-stock'
+                                                        : 'stock-badge out-of-stock'
+                                                }
+                                            >
+                                                {integerFormatter.format(item.stockQuantity)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
+
             {canManage && formOpen ? (
                 <section id="stock-form" className="section-card stock-form" aria-labelledby="stock-form-title">
                     <h3 className="section-title" id="stock-form-title">{t('stockCreateTitle')}</h3>
                     <p className="section-description">{t('stockCreateDescription')}</p>
+                    <p className="field-hint">{t('stockLineNote')}</p>
 
                     <div className="form-stack compact">
                         <div className="field-grid document-meta-grid">
@@ -533,56 +742,111 @@ export function StockManager(): React.JSX.Element {
                                 </button>
                             </div>
 
-                            {form.lines.map((line, index) => (
-                                <div className="line-item-row" key={line.key}>
-                                    <span className="line-index">{index + 1}</span>
-                                    <select
-                                        className="field-input"
-                                        aria-label={`${t('filterProduct')} ${index + 1}`}
-                                        value={line.productId}
-                                        onChange={(event) => changeLine(line.key, { productId: event.target.value })}
-                                    >
-                                        <option value="">{t('filterProduct')}</option>
-                                        {products.map((product) => (
-                                            <option key={product.id} value={product.id}>
-                                                {product.ref} — {product.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        step="1"
-                                        className="field-input field-number"
-                                        aria-label={`${t('columnQuantity')} ${index + 1}`}
-                                        value={line.quantity}
-                                        onChange={(event) => changeLine(line.key, { quantity: event.target.value })}
-                                    />
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        className="field-input field-number"
-                                        aria-label={`${t('columnUnitPrice')} ${index + 1}`}
-                                        value={line.unitPrice}
-                                        onChange={(event) => changeLine(line.key, { unitPrice: event.target.value })}
-                                    />
-                                    <span className="line-total">
-                                        {numberFormatter.format(
-                                            (isPositiveInteger(line.quantity) ? Number(line.quantity) : 0) *
-                                            (isMoney(line.unitPrice) ? Number(line.unitPrice) : 0),
-                                        )}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        className="button danger small line-item-actions"
-                                        onClick={() => removeLine(line.key)}
-                                        aria-label={`${t('removeLine')} ${index + 1}`}
-                                    >
-                                        {t('removeLine')}
-                                    </button>
-                                </div>
-                            ))}
+                            {form.lines.map((line, index) => {
+                                const product = productById.get(line.productId);
+                                const sum = combinationSum(line);
+                                const total = isPositiveInteger(line.totalQuantity) ? Number(line.totalQuantity) : 0;
+                                const balanced = total > 0 && sum === total;
+
+                                return (
+                                    <article className="stock-product-line" key={line.key}>
+                                        <div className="stock-line-header">
+                                            <span className="line-index">{index + 1}</span>
+                                            <select
+                                                className="field-input product-select"
+                                                aria-label={`${t('filterProduct')} ${index + 1}`}
+                                                value={line.productId}
+                                                onChange={(event) => selectProduct(line.key, event.target.value)}
+                                            >
+                                                <option value="">{t('allProducts')}</option>
+                                                {sortedProducts.map((item) => (
+                                                    <option key={item.id} value={item.id}>
+                                                        {item.ref} — {item.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                className="field-input field-number"
+                                                aria-label={`${t('columnBuyingPrice')} ${index + 1}`}
+                                                placeholder={t('columnBuyingPrice')}
+                                                value={line.buyingPrice}
+                                                onChange={(event) => changeLine(line.key, { buyingPrice: event.target.value })}
+                                            />
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                className="field-input field-number"
+                                                aria-label={`${t('columnTotalQuantity')} ${index + 1}`}
+                                                placeholder={t('columnTotalQuantity')}
+                                                value={line.totalQuantity}
+                                                onChange={(event) => changeLine(line.key, { totalQuantity: event.target.value })}
+                                            />
+                                            <span className="line-total">
+                                                {numberFormatter.format(lineTotal(line))}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="button danger small line-item-actions"
+                                                onClick={() => removeLine(line.key)}
+                                                aria-label={`${t('removeLine')} ${index + 1}`}
+                                            >
+                                                {t('removeLine')}
+                                            </button>
+                                        </div>
+
+                                        <div className="combination-grid">
+                                            <span className="combination-grid-title">{t('stockDistribution')}</span>
+                                            {line.combinations.length === 0 ? (
+                                                <p className="field-hint">{t('stockCombinationsRequired')}</p>
+                                            ) : (
+                                                <>
+                                                    <div className="combination-grid-head">
+                                                        <span>{t('skuLabel')}</span>
+                                                        <span>{t('columnSku')}</span>
+                                                        <span>{t('columnStock')}</span>
+                                                        <span>{t('columnQuantity')}</span>
+                                                    </div>
+                                                    {line.combinations.map((combination) => {
+                                                        const sku = skuById.get(combination.skuId);
+                                                        const stock = availabilityBySku.get(combination.skuId)?.stockQuantity
+                                                            ?? sku?.stockQuantity
+                                                            ?? 0;
+                                                        return (
+                                                            <div className="combination-grid-row" key={combination.skuId}>
+                                                                <span>{sku?.label || '—'}</span>
+                                                                <span className="table-ref">{sku?.sku || '—'}</span>
+                                                                <span className="text-center">
+                                                                    {integerFormatter.format(stock)}
+                                                                </span>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    step="1"
+                                                                    className="field-input field-number"
+                                                                    aria-label={`${t('columnQuantity')} ${sku?.label ?? combination.skuId}`}
+                                                                    value={combination.quantity}
+                                                                    onChange={(event) =>
+                                                                        changeCombination(line.key, combination.skuId, event.target.value)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </>
+                                            )}
+                                            <div className={`combination-summary${balanced ? ' balanced' : ''}`}>
+                                                {t('columnQuantity')}: {integerFormatter.format(sum)} /{' '}
+                                                {integerFormatter.format(total)}
+                                                {product ? ` · ${product.ref}` : ''}
+                                            </div>
+                                        </div>
+                                    </article>
+                                );
+                            })}
 
                             <div className="total-row">
                                 <span className="total-label">{t('grandTotal')}</span>

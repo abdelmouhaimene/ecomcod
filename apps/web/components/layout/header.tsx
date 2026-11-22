@@ -152,7 +152,7 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                   <span className="material-symbols-outlined text-primary text-[20px]">
                     headphones
                   </span>
-                  <span>Aura Pro Studio</span>
+                  <span>{t('featuredProduct')}</span>
                 </Link>
                 <Link
                   href="/checkout"
@@ -177,7 +177,7 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                   <span className="material-symbols-outlined text-primary text-[20px]">
                     local_shipping
                   </span>
-                  <span>Order Tracking</span>
+                  <span>{t('tracking')}</span>
                 </Link>
                 <Link
                   href="/login"
@@ -212,7 +212,9 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                 </div>
               )}
               <div className="p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
-                <span className="font-label-caps text-[11px] text-on-surface-variant">Theme</span>
+                <span className="font-label-caps text-[11px] text-on-surface-variant">
+                  {t('theme')}
+                </span>
                 <ThemeToggle />
               </div>
               <p className="font-body-sm text-[11px] text-outline">

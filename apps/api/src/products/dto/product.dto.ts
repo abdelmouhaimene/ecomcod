@@ -6,6 +6,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
@@ -16,6 +17,7 @@ import {
   ValidationArguments,
   ValidateNested,
 } from 'class-validator';
+import { SIZE_TEXT_VALUES, VARIANT_TYPES } from '../entities/product-variant.entity.js';
 import type {
   ProductImagePayload,
   ProductPayload,
@@ -42,7 +44,49 @@ function productRule(name: string, message: string, isValid: (dto: ProductDto) =
   };
 }
 
-/** Ratings are stored with one decimal place, e.g. 4.5. */
+function dimensionKey(variant: Pick<ProductVariantDto, 'variantType' | 'name'>): string {
+  return variant.variantType === 'OTHER'
+    ? `OTHER:${(variant.name ?? '').trim().toLowerCase()}`
+    : variant.variantType;
+}
+
+function valueKey(variantType: string, value: string): string {
+  return variantType === 'SIZE_TEXT' ? value.trim().toUpperCase() : value.trim();
+}
+
+/** Type-specific rules need the parent variant's `variantType`. */
+function variantValues(): PropertyDecorator {
+  return (target: object, propertyName: string | symbol) => {
+    registerDecorator({
+      name: 'variantValues',
+      target: target.constructor,
+      propertyName: propertyName as string,
+      options: { message: 'Invalid value for this variant type' },
+      validator: {
+        validate: (values: unknown, args: ValidationArguments): boolean => {
+          const variant = args.object as ProductVariantDto;
+          if (!Array.isArray(values)) return true;
+          return values.every((value) => {
+            if (!value || typeof value.value !== 'string') return false;
+            const text = value.value.trim();
+            if (text.length === 0) return false;
+            if (variant.variantType === 'SIZE_TEXT') {
+              return SIZE_TEXT_VALUES.includes(text.toUpperCase() as never);
+            }
+            if (variant.variantType === 'SIZE_NUM') {
+              return /^\d+(\.\d{1,2})?$/.test(text);
+            }
+            if (variant.variantType === 'COLOR') {
+              return typeof value.hexColor === 'string' && /^#[0-9A-Fa-f]{6}$/.test(value.hexColor.trim());
+            }
+            return value.hexColor === undefined || value.hexColor === null;
+          });
+        },
+      },
+    });
+  };
+}
+
 function oneDecimalPlace(): PropertyDecorator {
   return (target: object, propertyName: string | symbol) => {
     registerDecorator({
@@ -82,6 +126,33 @@ export class ProductImageDto implements ProductImagePayload {
   position: number;
 }
 
+export class ProductVariantValueDto {
+  @Transform(trimString)
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  key?: string;
+
+  @Transform(trimString)
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  value: string;
+
+  /** Required for `COLOR`; `null` for every other variant type. */
+  @Transform(trimString)
+  @IsOptional()
+  hexColor?: string | null;
+
+  /** Optional; when provided it must reference one of the product's images. */
+  @Transform(trimString)
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  imageKey?: string | null;
+}
+
 export class ProductVariantDto implements ProductVariantPayload {
   @Transform(trimString)
   @IsOptional()
@@ -97,20 +168,15 @@ export class ProductVariantDto implements ProductVariantPayload {
   name: string;
 
   @Transform(trimString)
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  value: string;
+  @IsIn(VARIANT_TYPES)
+  variantType: ProductVariantPayload['variantType'];
 
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  price: number;
-
-  @Transform(trimString)
-  @IsString()
-  @IsNotEmpty()
-  imageKey: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  @variantValues()
+  @ValidateNested({ each: true })
+  @Type(() => ProductVariantValueDto)
+  values: ProductVariantValueDto[];
 }
 
 /** Full replacement payload used by both POST and PUT. */
@@ -180,6 +246,12 @@ export class ProductDto implements ProductPayload {
   @IsUUID('4', { each: true })
   categoryIds: string[];
 
+  /** Optional so existing category-only payloads keep working. */
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  familyIds?: string[];
+
   @IsArray()
   @ArrayNotEmpty()
   @productRule(
@@ -222,13 +294,50 @@ export class ProductDto implements ProductPayload {
     },
   )
   @productRule(
+    'uniqueVariantDimensions',
+    'Only one variant is allowed per variant type (or custom name).',
+    (dto) => {
+      if (!Array.isArray(dto.variants)) return true;
+      const keys = dto.variants.map((variant) => dimensionKey(variant));
+      return new Set(keys).size === keys.length;
+    },
+  )
+  @productRule(
+    'uniqueVariantValueKeys',
+    'Variant value keys must be unique within a variant.',
+    (dto) => {
+      if (!Array.isArray(dto.variants)) return true;
+      return dto.variants.every((variant) => {
+        const keys = (variant?.values ?? [])
+          .map((value) => value?.key)
+          .filter((key): key is string => typeof key === 'string' && key.length > 0);
+        return new Set(keys).size === keys.length;
+      });
+    },
+  )
+  @productRule(
+    'uniqueVariantValues',
+    'Variant values must be unique within a variant.',
+    (dto) => {
+      if (!Array.isArray(dto.variants)) return true;
+      return dto.variants.every((variant) => {
+        const values = (variant?.values ?? []).map((value) =>
+          valueKey(variant?.variantType ?? '', value?.value ?? ''),
+        );
+        return new Set(values).size === values.length;
+      });
+    },
+  )
+  @productRule(
     'variantImageKeys',
-    'Each variant imageKey must reference an image in this product.',
+    'Each variant value imageKey must reference an image in this product.',
     (dto) => {
       if (!Array.isArray(dto.images) || !Array.isArray(dto.variants)) return true;
       const keys = new Set(dto.images.map((image) => image?.key));
-      return dto.variants.every(
-        (variant) => typeof variant?.imageKey === 'string' && keys.has(variant.imageKey),
+      return dto.variants.every((variant) =>
+        (variant?.values ?? []).every(
+          (value) => !value?.imageKey || keys.has(value.imageKey),
+        ),
       );
     },
   )

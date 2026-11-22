@@ -1,5 +1,12 @@
-import { IsString, Length, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsOptional, IsString, Length, Matches, MaxLength } from 'class-validator';
 import type { CategoryPayload } from '@repo/types';
+
+const normalizeIcon = ({ value }: { value: unknown }): unknown => {
+    if (typeof value !== 'string') return value;
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+};
 
 export class CategoryDto implements CategoryPayload {
     @IsString()
@@ -12,4 +19,10 @@ export class CategoryDto implements CategoryPayload {
         message: 'ref may only contain letters, numbers, dashes and underscores',
     })
     ref: string;
+
+    @Transform(normalizeIcon)
+    @IsOptional()
+    @IsString()
+    @MaxLength(500)
+    icon?: string | null;
 }

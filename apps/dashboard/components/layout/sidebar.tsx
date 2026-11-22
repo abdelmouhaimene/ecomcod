@@ -56,12 +56,54 @@ const navItems: NavItem[] = [
         ),
     },
     {
+        href: '/families',
+        labelKey: 'navFamilies',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="6" cy="6" r="2.2" />
+                <circle cx="18" cy="6" r="2.2" />
+                <circle cx="12" cy="18" r="2.2" />
+                <path d="M7.8 7.6 10.6 16M16.2 7.6 13.4 16M8.2 6h7.6" />
+            </svg>
+        ),
+    },
+    {
+        href: '/offers',
+        labelKey: 'navOffers',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 12 12 20 4 12V4h8z" />
+                <circle cx="8.5" cy="8.5" r="1.4" />
+            </svg>
+        ),
+    },
+    {
+        href: '/pos',
+        labelKey: 'navPos',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M7 7h10M7 11h10M7 15h4M16 15h1" />
+            </svg>
+        ),
+    },
+    {
         href: '/stock',
         labelKey: 'navStock',
         icon: (
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M3.5 8.5 12 4l8.5 4.5v7L12 20l-8.5-4.5z" />
                 <path d="M3.5 8.5 12 13l8.5-4.5M12 13v7M7.5 6.2l8.5 4.5" />
+            </svg>
+        ),
+    },
+    {
+        href: '/suppliers',
+        labelKey: 'navSuppliers',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.5 8.5 12 4l8.5 4.5v7L12 20l-8.5-4.5z" />
+                <path d="M7.5 10.5h9M7.5 13.5h5" />
             </svg>
         ),
     },
@@ -76,8 +118,8 @@ const navItems: NavItem[] = [
         ),
     },
     {
-        href: '/change-password',
-        labelKey: 'navChangePassword',
+        href: '/profile',
+        labelKey: 'navProfile',
         icon: (
             <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="5" y="10" width="14" height="10" rx="2" />

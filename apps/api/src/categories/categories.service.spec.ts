@@ -34,6 +34,7 @@ describe('CategoriesService', () => {
     id: 'category-1',
     name: 'Audio',
     ref: 'audio',
+    icon: null,
     productCategories: [],
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-02T00:00:00.000Z'),
@@ -72,6 +73,7 @@ describe('CategoriesService', () => {
         id: existing.id,
         name: existing.name,
         ref: existing.ref,
+        icon: null,
         createdAt: existing.createdAt,
         updatedAt: existing.updatedAt,
       },
@@ -88,8 +90,33 @@ describe('CategoriesService', () => {
   it('creates a trimmed category', async () => {
     const result = await service.create({ name: '  Video ', ref: ' video ' });
 
-    expect(repo.create).toHaveBeenCalledWith({ name: 'Video', ref: 'video' });
+    expect(repo.create).toHaveBeenCalledWith({ name: 'Video', ref: 'video', icon: null });
     expect(result.name).toBe('Video');
+  });
+
+  it('persists a trimmed icon and exposes it publicly', async () => {
+    const result = await service.create({
+      name: 'Video',
+      ref: 'video',
+      icon: '  /uploads/video-icon.png  ',
+    });
+
+    expect(repo.create).toHaveBeenCalledWith({
+      name: 'Video',
+      ref: 'video',
+      icon: '/uploads/video-icon.png',
+    });
+    expect(result.icon).toBe('/uploads/video-icon.png');
+  });
+
+  it('clears an icon when the payload is blank or omitted', async () => {
+    await service.create({ name: 'Video', ref: 'video', icon: '   ' });
+    expect(repo.create).toHaveBeenCalledWith({ name: 'Video', ref: 'video', icon: null });
+
+    const withIcon: Category = { ...existing, icon: '/uploads/audio.png' };
+    repo.findOneBy.mockResolvedValueOnce(withIcon);
+    await service.update(existing.id, { name: 'Audio', ref: 'audio' });
+    expect(withIcon.icon).toBeNull();
   });
 
   it('rejects duplicate names and refs with distinct messages', async () => {
