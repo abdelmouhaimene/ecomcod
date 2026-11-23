@@ -8,7 +8,7 @@ import { UploadService } from './upload.service.js';
 describe('UploadController', () => {
   let controller: UploadController;
   const uploads = {
-    save: vi.fn(async () => ({ url: '/uploads/image.png' })),
+    save: vi.fn(async () => ({ url: '/uploads/image.webp' })),
   };
 
   beforeEach(async () => {
@@ -24,10 +24,13 @@ describe('UploadController', () => {
     controller = module.get<UploadController>(UploadController);
   });
 
-  it('delegates the uploaded file to the service', async () => {
+  it('delegates the uploaded file and processing kind to the service', async () => {
     const file = { mimetype: 'image/png' } as Express.Multer.File;
-    await expect(controller.upload(file)).resolves.toEqual({ url: '/uploads/image.png' });
-    expect(uploads.save).toHaveBeenCalledWith(file);
+    await expect(controller.upload(file)).resolves.toEqual({ url: '/uploads/image.webp' });
+    expect(uploads.save).toHaveBeenCalledWith(file, undefined);
+
+    await controller.upload(file, 'logo');
+    expect(uploads.save).toHaveBeenLastCalledWith(file, 'logo');
   });
 
   it('restricts uploads to system and manager', () => {

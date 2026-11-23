@@ -88,7 +88,7 @@ export function CategoryManager(): React.JSX.Element {
         setNotice(null);
         setUploadingIcon(true);
         try {
-            const response = await adminApi.uploadImage(file);
+            const response = await adminApi.uploadImage(file, 'category-icon');
             setForm((current) => ({ ...current, icon: response.url }));
         } catch (caught) {
             setFormError(apiMessage(caught, t('categoryIconError')));

@@ -9,6 +9,8 @@ import { StoreInfoProvider } from '../context/store-info-context';
 import { Header } from '../components/layout/header';
 import { Footer } from '../components/layout/footer';
 import { BottomNav } from '../components/layout/bottom-nav';
+import { catalogApi } from '../lib/api';
+import { resolveMediaUrl } from '../lib/catalog';
 import './globals.css';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -25,11 +27,27 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'AURELIA TECH | High-End Precision Hardware & Tech Accessories',
-  description:
-    'Architectural precision hardware and high-grade physical accoutrements crafted for discerning computational environments.',
-};
+const FALLBACK_TITLE = 'AURELIA TECH | High-End Precision Hardware & Tech Accessories';
+const FALLBACK_DESCRIPTION =
+  'Architectural precision hardware and high-grade physical accoutrements crafted for discerning computational environments.';
+const FALLBACK_ICON = '/favicon.ico';
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const store = await catalogApi.getStore();
+    return {
+      title: store.name || FALLBACK_TITLE,
+      description: store.description || FALLBACK_DESCRIPTION,
+      icons: { icon: resolveMediaUrl(store.logo) || FALLBACK_ICON },
+    };
+  } catch {
+    return {
+      title: FALLBACK_TITLE,
+      description: FALLBACK_DESCRIPTION,
+      icons: { icon: FALLBACK_ICON },
+    };
+  }
+}
 
 export default async function RootLayout({
   children,

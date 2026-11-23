@@ -126,7 +126,9 @@ export interface PublicProduct<TDate = string> {
     updatedAt: TDate;
 }
 
-/** Full replacement payload used by both create and update. */
+/** Image processing profile requested by the dashboard uploader. */
+export type UploadImageKind = 'product' | 'client' | 'gallery' | 'category-icon' | 'logo';
+
 export interface UploadImageResponse {
     url: string;
 }

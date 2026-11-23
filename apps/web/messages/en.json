@@ -1,7 +1,6 @@
 {
   "common": {
     "brandName": "AURELIA TECH",
-    "brandSubtitle": "PRECISION ATELIER",
     "currency": "DZD",
     "search": "Search premium tech...",
     "close": "Close",
@@ -145,15 +144,11 @@
       "conciergeEmail": "support@aurumtech.luxury",
       "conciergeHours": "Mon–Sat: 09:00 – 20:00 EST",
       "links": {
-        "stores": "Store Information",
-        "support": "Customer Support",
-        "warranty": "Warranty & Care",
-        "auth": "Authenticity Verification",
-        "privacy": "Privacy Policy",
-        "terms": "Terms of Service"
+        "policy": "Policy",
+        "faq": "FAQ",
+        "shippingReturn": "Shipping and return"
       },
-      "copyright": "© 2025 Aurelia Precision Technologies Inc. All rights reserved.",
-      "isoBadge": "ISO 9001 PRECISION CERTIFIED HARDWARE"
+      "copyright": "© {year} {name}. All rights reserved."
     },
     "loading": "Loading the collection…",
     "emptyProducts": "No products are available right now.",

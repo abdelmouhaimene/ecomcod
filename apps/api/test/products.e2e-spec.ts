@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import path from 'node:path';
 import { unlink } from 'node:fs/promises';
+import sharp from 'sharp';
 import request from 'supertest';
 import { DataSource, In } from 'typeorm';
 import { Admin } from '../src/admins/entities/admin.entity.js';
@@ -46,12 +47,15 @@ describe('Products catalog (e2e)', () => {
   let guardEntryId: string;
   const uploadedFiles: string[] = [];
 
-  const png = Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==',
-    'base64',
-  );
+  let png: Buffer;
 
   beforeAll(async () => {
+    png = await sharp({
+      create: { width: 16, height: 16, channels: 3, background: '#ffffff' },
+    })
+      .png()
+      .toBuffer();
+
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -580,17 +584,17 @@ describe('Products catalog (e2e)', () => {
     expect(message(forbidden.body)).toBe('Insufficient permissions');
 
     const uploaded = await request(app.getHttpServer())
-      .post('/v1/admin/uploads')
+      .post('/v1/admin/uploads?kind=product')
       .set('Cookie', managerCookie)
       .attach('file', png, { filename: 'pixel.png', contentType: 'image/png' })
       .expect(201);
-    expect(uploaded.body.url).toMatch(/^\/uploads\/[0-9a-f-]{36}\.png$/);
+    expect(uploaded.body.url).toMatch(/^\/uploads\/[0-9a-f-]{36}\.webp$/);
     uploadedFiles.push(path.resolve(process.cwd(), uploaded.body.url.replace(/^\//, '')));
 
     const served = await request(app.getHttpServer())
       .get(uploaded.body.url)
       .expect(200);
-    expect(served.headers['content-type']).toContain('image/png');
+    expect(served.headers['content-type']).toContain('image/webp');
 
     const badMime = await request(app.getHttpServer())
       .post('/v1/admin/uploads')

@@ -32,6 +32,7 @@ import {
   type StockEntryPayload,
   type StoreInfoPayload,
   type SupplierPayload,
+  type UploadImageKind,
   type UploadImageResponse,
 } from '@repo/types';
 
@@ -69,6 +70,7 @@ export type {
   StockEntryPayload,
   StoreInfoPayload,
   SupplierPayload,
+  UploadImageKind,
   UploadImageResponse,
 } from '@repo/types';
 
@@ -271,13 +273,16 @@ export const adminApi = {
   createPosOrder: (payload: OrderPayload) =>
     adminFetch<PublicOrder>('/v1/admin/pos/orders', { method: 'POST', body: payload }),
 
-  uploadImage: (file: File) => {
+  uploadImage: (file: File, kind: UploadImageKind = 'product') => {
     const formData = new FormData();
     formData.append('file', file);
-    return adminFetch<UploadImageResponse>('/v1/admin/uploads', {
-      method: 'POST',
-      body: formData,
-      formData: true,
-    });
+    return adminFetch<UploadImageResponse>(
+      `/v1/admin/uploads?kind=${encodeURIComponent(kind)}`,
+      {
+        method: 'POST',
+        body: formData,
+        formData: true,
+      },
+    );
   },
 };

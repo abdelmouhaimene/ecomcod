@@ -95,7 +95,7 @@ export function GalleryManager(): React.JSX.Element {
         setNotice(null);
         setUploadingImage(true);
         try {
-            const response = await adminApi.uploadImage(file);
+            const response = await adminApi.uploadImage(file, 'gallery');
             setForm((current) => ({ ...current, image: response.url }));
         } catch (caught) {
             setFormError(apiMessage(caught, t('galleryImageError')));

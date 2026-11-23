@@ -60,9 +60,11 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                 <span>{store?.name || tCommon('brandName')}</span>
               )}
             </Link>
-            <span className="font-label-caps text-[9px] tracking-[0.22em] text-on-surface-variant/80 -mt-0.5">
-              {tCommon('brandSubtitle')}
-            </span>
+            {store?.logo && (
+              <span className="font-label-caps text-[9px] tracking-[0.22em] text-on-surface-variant/80 -mt-0.5">
+                {store.name || tCommon('brandName')}
+              </span>
+            )}
           </div>
 
           {/* Trailing Action Cluster */}
@@ -135,9 +137,6 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                   <h3 className="font-label-caps text-label-caps tracking-widest text-primary uppercase font-bold">
                     {store?.name || tCommon('brandName')}
                   </h3>
-                  <p className="font-label-caps text-[9px] text-on-surface-variant tracking-wider">
-                    {tCommon('brandSubtitle')}
-                  </p>
                 </div>
                 <button
                   onClick={() => setMenuOpen(false)}

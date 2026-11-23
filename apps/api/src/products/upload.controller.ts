@@ -6,6 +6,7 @@ import {
   Injectable,
   NestInterceptor,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -54,7 +55,10 @@ export class UploadController {
 
   @Post()
   @UseInterceptors(ImageUploadInterceptor)
-  upload(@UploadedFile() file: Express.Multer.File): Promise<UploadImageResponse> {
-    return this.uploads.save(file);
+  upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Query('kind') kind?: string,
+  ): Promise<UploadImageResponse> {
+    return this.uploads.save(file, kind);
   }
 }

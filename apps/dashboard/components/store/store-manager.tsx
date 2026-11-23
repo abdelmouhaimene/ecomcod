@@ -135,7 +135,7 @@ export function StoreManager(): React.JSX.Element {
         setNotice(null);
         setUploadingLogo(true);
         try {
-            const response = await adminApi.uploadImage(file);
+            const response = await adminApi.uploadImage(file, 'logo');
             setField('logo', response.url);
         } catch (caught) {
             setFormError(apiMessage(caught, t('galleryImageError')));

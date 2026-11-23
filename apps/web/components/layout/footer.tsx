@@ -11,6 +11,7 @@ export function Footer() {
   const tCommon = useTranslations('common');
   const tStore = useTranslations('store');
   const { store } = useStoreInfo();
+  const currentYear = new Date().getFullYear();
 
   return (
     <footer className="w-full bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant/30 pt-8 pb-16">
@@ -95,39 +96,21 @@ export function Footer() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4">
                 <a
                   className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
-                  href="#store-info"
+                  href="#"
                 >
-                  {t('links.stores')}
+                  {t('links.policy')}
                 </a>
                 <a
                   className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
                   href="#"
                 >
-                  {t('links.support')}
+                  {t('links.faq')}
                 </a>
                 <a
                   className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
                   href="#"
                 >
-                  {t('links.warranty')}
-                </a>
-                <a
-                  className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
-                  href="#"
-                >
-                  {t('links.auth')}
-                </a>
-                <a
-                  className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
-                  href="#"
-                >
-                  {t('links.privacy')}
-                </a>
-                <a
-                  className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
-                  href="#"
-                >
-                  {t('links.terms')}
+                  {t('links.shippingReturn')}
                 </a>
               </div>
             </div>
@@ -193,14 +176,13 @@ export function Footer() {
         </section>
 
         {/* Copyright */}
-        <div className="pt-4 border-t border-outline-variant/30 flex flex-col space-y-2">
-          <p className="font-body-sm text-[12px] text-outline">{t('copyright')}</p>
-          <div className="flex items-center space-x-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
-            <span className="font-label-caps text-[10px] text-on-surface-variant">
-              {t('isoBadge')}
-            </span>
-          </div>
+        <div className="pt-4 border-t border-outline-variant/30">
+          <p className="font-body-sm text-[12px] text-outline">
+            {t('copyright', {
+              year: currentYear,
+              name: store?.name || tCommon('brandName'),
+            })}
+          </p>
         </div>
       </div>
     </footer>

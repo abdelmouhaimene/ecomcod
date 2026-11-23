@@ -659,7 +659,7 @@ export function ProductManager(): React.JSX.Element {
         setUploading(true);
         try {
             for (const file of files) {
-                const response = await adminApi.uploadImage(file);
+                const response = await adminApi.uploadImage(file, 'product');
                 setForm((current) => {
                     const hasMain = current.images.some((image) => image.isMain);
                     return {

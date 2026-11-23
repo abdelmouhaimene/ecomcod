@@ -68,7 +68,7 @@ export function CommentManager(): React.JSX.Element {
         setNotice(null);
         setUploadingImage(true);
         try {
-            const response = await adminApi.uploadImage(file);
+            const response = await adminApi.uploadImage(file, 'client');
             setForm((current) => ({ ...current, userImage: response.url }));
         } catch (caught) {
             setFormError(apiMessage(caught, t('commentImageError')));
