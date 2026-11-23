@@ -1,6 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { PublicOrder } from '@repo/types';
+import type {
+    AppliedOfferPayload,
+    AppliedOfferSelectionPayload,
+    PublicOrder,
+} from '@repo/types';
 import { randomUUID } from 'node:crypto';
 import {
     CACHE_PREFIXES,
@@ -42,6 +46,33 @@ interface CheckoutPlan {
     productIds: string[];
     discount: number;
     freeShipping: boolean;
+}
+
+interface OfferChoice {
+    productId: string;
+    skuId: string;
+    /** Already multiplied by the offer's `times`. */
+    quantity: number;
+}
+
+type OfferChoices = Map<string, OfferChoice[]>;
+
+/** Consumes `quantity` units from the ordered choices (paid units first). */
+function takeUnits(choices: OfferChoice[], quantity: number): OfferChoice[] {
+    const taken: OfferChoice[] = [];
+    let remaining = quantity;
+    while (remaining > 0 && choices.length > 0) {
+        const choice = choices[0];
+        const units = Math.min(choice.quantity, remaining);
+        taken.push({ ...choice, quantity: units });
+        remaining -= units;
+        choice.quantity -= units;
+        if (choice.quantity === 0) choices.shift();
+    }
+    if (remaining > 0) {
+        throw new BadRequestException('The offer selection does not cover every unit.');
+    }
+    return taken;
 }
 
 @Injectable()
@@ -267,11 +298,68 @@ export class OrdersService {
         }
     }
 
+    /**
+     * Normalizes client selections into one entry per SKU with the number of
+     * units it covers. Several entries for the same product are allowed so a
+     * buy-X / pack with repeated products can use a different variant per unit.
+     */
+    private normalizeSelections(offer: Offer, applied: AppliedOfferPayload): OfferChoices {
+        const unitsPerProduct = new Map<string, number>();
+        if (offer.type === 'SINGLE_PRODUCT') {
+            const rule = offer.singleRule;
+            if (!rule) throw new BadRequestException(`${offer.name} is missing its rule.`);
+            const freeQuantity = rule.mode === 'BUY_X_GET_Y_FREE' ? rule.freeQuantity ?? 0 : 0;
+            unitsPerProduct.set(rule.productId, rule.buyQuantity + freeQuantity);
+        } else {
+            for (const item of offer.packItems ?? []) {
+                unitsPerProduct.set(item.productId, item.quantity);
+            }
+        }
+
+        const grouped = new Map<string, AppliedOfferSelectionPayload[]>();
+        for (const selection of applied.selections) {
+            const group = grouped.get(selection.productId) ?? [];
+            group.push(selection);
+            grouped.set(selection.productId, group);
+        }
+        if (
+            grouped.size !== unitsPerProduct.size ||
+            [...unitsPerProduct.keys()].some((productId) => !grouped.has(productId))
+        ) {
+            throw new BadRequestException(
+                `${offer.name} requires a variant choice for every product in the offer.`,
+            );
+        }
+
+        const normalized: OfferChoices = new Map();
+        for (const [productId, unitsPerInstance] of unitsPerProduct) {
+            const group = grouped.get(productId)!;
+            const expected = unitsPerInstance * applied.times;
+            // A lone selection without a quantity is the legacy shape used by
+            // the dashboard POS: that SKU covers all units of the product.
+            const legacy = group.length === 1 && group[0].quantity === undefined;
+            const choices = group.map((selection) => ({
+                productId,
+                skuId: selection.skuId,
+                quantity: legacy ? expected : (selection.quantity ?? 1) * applied.times,
+            }));
+            const total = choices.reduce((sum, choice) => sum + choice.quantity, 0);
+            if (total !== expected) {
+                throw new BadRequestException(
+                    `${offer.name} requires one variant choice for each unit of every product.`,
+                );
+            }
+            normalized.set(productId, choices);
+        }
+        return normalized;
+    }
+
     private async buildPlan(dto: OrderDto): Promise<CheckoutPlan> {
         const appliedOffers = dto.offers ?? [];
-        // Each applied offer carries the variant chosen by the client for every
-        // product it contains; keyed by offer id then product id.
-        const selectedSkuByOffer = new Map<string, Map<string, string>>();
+        // Normalized choices per offer and product; each choice already carries
+        // the number of units it covers (multiplied by the offer's `times`).
+        const choicesByOffer = new Map<string, OfferChoices>();
+        const freeChoicesByOffer = new Map<string, OfferChoice[]>();
         const offerIds = appliedOffers.map((offer) => offer.offerId);
         const offers = offerIds.length > 0
             ? await this.offers.find({
@@ -307,50 +395,46 @@ export class OrdersService {
                 throw new BadRequestException(`${offer.name} has expired.`);
             }
             const times = applied.times;
-
-            const offerProducts = offer.type === 'SINGLE_PRODUCT'
-                ? (offer.singleRule ? [offer.singleRule.productId] : [])
-                : [...new Set((offer.packItems ?? []).map((item) => item.productId))];
-            const selected = new Map(
-                applied.selections.map((selection) => [selection.productId, selection.skuId]),
-            );
-            if (
-                selected.size !== offerProducts.length ||
-                offerProducts.some((productId) => !selected.has(productId))
-            ) {
-                throw new BadRequestException(
-                    `${offer.name} requires one variant selection for each product in the offer.`,
-                );
-            }
-            selectedSkuByOffer.set(offer.id, selected);
+            const choices = this.normalizeSelections(offer, applied);
+            choicesByOffer.set(offer.id, choices);
 
             if (offer.type === 'SINGLE_PRODUCT') {
                 const rule = offer.singleRule;
                 if (!rule) throw new BadRequestException(`${offer.name} is missing its rule.`);
-                const skuId = selected.get(rule.productId);
-                if (!skuId) throw new BadRequestException(`${offer.name} is missing a variant selection.`);
+                const remainingChoices = (choices.get(rule.productId) ?? []).map((choice) => ({
+                    ...choice,
+                }));
+                const paidChoices = takeUnits(remainingChoices, rule.buyQuantity * times);
+                const freeChoices = takeUnits(remainingChoices, (rule.freeQuantity ?? 0) * times);
+
                 // The qualifying paid units must already be in the cart for the
-                // variant chosen by the client; the offer never adds paid units.
-                const paidInCart = dto.items
-                    .filter((item) => item.skuId === skuId)
-                    .reduce((sum, item) => sum + item.quantity, 0);
-                if (paidInCart < rule.buyQuantity * times) {
-                    throw new BadRequestException(
-                        `${offer.name} requires ${rule.buyQuantity * times} units of the selected variant in the cart.`,
-                    );
+                // variants chosen by the client; the offer never adds paid units.
+                for (const choice of paidChoices) {
+                    const paidInCart = dto.items
+                        .filter((item) => item.skuId === choice.skuId)
+                        .reduce((sum, item) => sum + item.quantity, 0);
+                    if (paidInCart < choice.quantity) {
+                        throw new BadRequestException(
+                            `${offer.name} requires ${choice.quantity} units of the selected variant in the cart.`,
+                        );
+                    }
                 }
+
                 if (rule.mode === 'BUY_X_GET_Y_FREE') {
-                    addRequired(skuId, (rule.freeQuantity ?? 0) * times);
+                    freeChoicesByOffer.set(offer.id, freeChoices);
+                    for (const choice of freeChoices) {
+                        addRequired(choice.skuId, choice.quantity);
+                    }
                 } else if (rule.mode === 'BUY_X_GET_FREE_SHIPPING') {
                     freeShipping = true;
                 }
                 continue;
             }
 
-            for (const item of offer.packItems ?? []) {
-                const skuId = selected.get(item.productId);
-                if (!skuId) throw new BadRequestException(`${offer.name} is missing a variant selection.`);
-                addRequired(skuId, item.quantity * times);
+            for (const productChoices of choices.values()) {
+                for (const choice of productChoices) {
+                    addRequired(choice.skuId, choice.quantity);
+                }
             }
         }
 
@@ -366,8 +450,9 @@ export class OrdersService {
         // Selections for free-shipping offers may not appear in `required`, so
         // load any remaining selected SKUs to validate the client's choices.
         const selectionPairs = appliedOffers.flatMap((applied) =>
-            [...(selectedSkuByOffer.get(applied.offerId) ?? new Map())]
-                .map(([productId, skuId]) => ({ productId, skuId })),
+            [...(choicesByOffer.get(applied.offerId) ?? new Map()).values()]
+                .flatMap((productChoices) => productChoices)
+                .map((choice) => ({ productId: choice.productId, skuId: choice.skuId })),
         );
         const missingSelectionIds = [...new Set(selectionPairs.map((pair) => pair.skuId))]
             .filter((skuId) => !skuById.has(skuId));
@@ -423,42 +508,38 @@ export class OrdersService {
             if (!offer) continue;
             const times = applied.times;
             if (offer.type === 'SINGLE_PRODUCT') {
-                const rule = offer.singleRule;
-                if (!rule) continue;
-                if (rule.mode !== 'BUY_X_GET_Y_FREE') continue;
-                const selectedSkuId = selectedSkuByOffer.get(offer.id)?.get(rule.productId);
-                if (!selectedSkuId) continue;
-                const info = skuInfo(selectedSkuId);
-                const freeQuantity = (rule.freeQuantity ?? 0) * times;
-                lines.push({
-                    ...info,
-                    skuId: selectedSkuId,
-                    quantity: freeQuantity,
-                    unitPrice: 0,
-                    kind: 'SINGLE_FREE',
-                    offerId: offer.id,
-                    offerName: offer.name,
-                });
-                discount = roundMoney(discount + freeQuantity * info.price);
+                if (offer.singleRule?.mode !== 'BUY_X_GET_Y_FREE') continue;
+                for (const choice of freeChoicesByOffer.get(offer.id) ?? []) {
+                    const info = skuInfo(choice.skuId);
+                    lines.push({
+                        ...info,
+                        skuId: choice.skuId,
+                        quantity: choice.quantity,
+                        unitPrice: 0,
+                        kind: 'SINGLE_FREE',
+                        offerId: offer.id,
+                        offerName: offer.name,
+                    });
+                    discount = roundMoney(discount + choice.quantity * info.price);
+                }
                 continue;
             }
 
             let packBase = 0;
-            for (const item of offer.packItems ?? []) {
-                const selectedSkuId = selectedSkuByOffer.get(offer.id)?.get(item.productId);
-                if (!selectedSkuId) continue;
-                const info = skuInfo(selectedSkuId);
-                const quantity = item.quantity * times;
-                packBase = roundMoney(packBase + quantity * info.price);
-                lines.push({
-                    ...info,
-                    skuId: selectedSkuId,
-                    quantity,
-                    unitPrice: info.price,
-                    kind: 'PACK',
-                    offerId: offer.id,
-                    offerName: offer.name,
-                });
+            for (const productChoices of choicesByOffer.get(offer.id)?.values() ?? []) {
+                for (const choice of productChoices) {
+                    const info = skuInfo(choice.skuId);
+                    packBase = roundMoney(packBase + choice.quantity * info.price);
+                    lines.push({
+                        ...info,
+                        skuId: choice.skuId,
+                        quantity: choice.quantity,
+                        unitPrice: info.price,
+                        kind: 'PACK',
+                        offerId: offer.id,
+                        offerName: offer.name,
+                    });
+                }
             }
             const packPrice = roundMoney((offer.packPrice ?? 0) * times);
             if (packPrice > packBase) {

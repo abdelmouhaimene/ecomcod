@@ -87,6 +87,8 @@ export const catalogApi = {
   getProduct: (id: string) =>
     apiFetch<PublicProduct>(`/v1/products/${encodeURIComponent(id)}`),
   listActiveOffers: () => apiFetch<PublicOffer[]>('/v1/offers/active'),
+  getOffer: (id: string) =>
+    apiFetch<PublicOffer>(`/v1/offers/${encodeURIComponent(id)}`),
   listComments: () => apiFetch<PublicComment[]>('/v1/comments'),
   getGallery: () => apiFetch<GalleryState>('/v1/gallery'),
   getStore: () => apiFetch<PublicStoreInfo>('/v1/store'),

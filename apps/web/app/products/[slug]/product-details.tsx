@@ -4,94 +4,34 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import {
-  SIZE_TEXT_VALUES,
-  type PublicOffer,
-  type PublicProduct,
-  type PublicProductVariant,
-  type PublicProductVariantValue,
-  type VariantType,
+import type {
+  PublicOffer,
+  PublicProduct,
+  PublicProductVariantValue,
 } from '@repo/types';
 import { useStore } from '../../../context/store-context';
 import { catalogApi } from '../../../lib/api';
 import {
   formatPrice,
-  getAvailableSkus,
   getPrimaryImageUrl,
   getRating,
   getSalesCount,
   resolveMediaUrl,
   slugify,
 } from '../../../lib/catalog';
-
-const SIZE_TEXT_SET = new Set<string>(SIZE_TEXT_VALUES);
-
-const VARIANT_LABEL_KEYS = {
-  COLOR: 'variantTypes.color',
-  SIZE_TEXT: 'variantTypes.sizeText',
-  SIZE_NUM: 'variantTypes.sizeNum',
-  DESIGN: 'variantTypes.design',
-  OTHER: 'variantTypes.other',
-} as const satisfies Record<VariantType, string>;
-
-interface VariantGroup {
-  key: string;
-  name: string;
-  variantType: VariantType;
-  options: PublicProductVariantValue[];
-}
-
-interface VariantOption {
-  value: string;
-  variant: PublicProductVariantValue | null;
-}
+import {
+  VARIANT_LABEL_KEYS,
+  buildVariantGroups,
+  buildVariantOptions,
+  canSelectVariant,
+  findSelectedSku,
+  initialVariantSelection,
+  selectedVariantIds,
+} from '../../../lib/variants';
 
 interface GalleryImage {
   id: string;
   url: string;
-}
-
-function variantGroupKey(variant: PublicProductVariant): string {
-  return `${variant.variantType}:${variant.name}`;
-}
-
-function buildGroups(product: PublicProduct): VariantGroup[] {
-  const groups = new Map<string, VariantGroup>();
-  for (const variant of product.variants) {
-    const key = variantGroupKey(variant);
-    const group = groups.get(key);
-    if (group) {
-      group.options.push(...variant.values);
-    } else {
-      groups.set(key, {
-        key,
-        name: variant.name,
-        variantType: variant.variantType,
-        options: [...variant.values],
-      });
-    }
-  }
-  return [...groups.values()];
-}
-
-function buildVariantOptions(group: VariantGroup): VariantOption[] {
-  const hasCanonicalSizes = group.options.some((option) =>
-    SIZE_TEXT_SET.has(option.value.toUpperCase())
-  );
-
-  if (group.variantType === 'SIZE_TEXT' && hasCanonicalSizes) {
-    const canonical: VariantOption[] = SIZE_TEXT_VALUES.map((value) => ({
-      value,
-      variant:
-        group.options.find((option) => option.value.toUpperCase() === value) ?? null,
-    }));
-    const extras: VariantOption[] = group.options
-      .filter((option) => !SIZE_TEXT_SET.has(option.value.toUpperCase()))
-      .map((option) => ({ value: option.value, variant: option }));
-    return [...canonical, ...extras];
-  }
-
-  return group.options.map((option) => ({ value: option.value, variant: option }));
 }
 
 async function findProduct(slug: string): Promise<PublicProduct | null> {
@@ -196,7 +136,10 @@ export default function ProductDetails() {
     };
   }, [slug]);
 
-  const groups = React.useMemo(() => (product ? buildGroups(product) : []), [product]);
+  const groups = React.useMemo(
+    () => (product ? buildVariantGroups(product) : []),
+    [product]
+  );
   const valueById = React.useMemo(
     () =>
       new Map(
@@ -206,25 +149,13 @@ export default function ProductDetails() {
       ),
     [product]
   );
-  const availableSkus = React.useMemo(
-    () => (product ? getAvailableSkus(product) : []),
-    [product]
-  );
   const selectedIds = React.useMemo(
-    () =>
-      Object.values(selectedValueIds).filter(
-        (id): id is string => typeof id === 'string' && id.length > 0
-      ),
+    () => selectedVariantIds(selectedValueIds),
     [selectedValueIds]
   );
   const selectedSku = React.useMemo(
-    () =>
-      availableSkus.find(
-        (sku) =>
-          sku.variantValueIds.length === selectedIds.length &&
-          selectedIds.every((id) => sku.variantValueIds.includes(id))
-      ) ?? null,
-    [availableSkus, selectedIds]
+    () => (product ? findSelectedSku(product, selectedValueIds) : null),
+    [product, selectedValueIds]
   );
   const selectedValue = selectedIds
     .map((id) => valueById.get(id))
@@ -236,18 +167,8 @@ export default function ProductDetails() {
       setSelectedValueIds({});
       return;
     }
-
-    const first = availableSkus[0] ?? product.skus[0];
-    const next: Record<string, string> = {};
-    for (const group of groups) {
-      const matchingId = first?.variantValueIds.find((id) =>
-        group.options.some((option) => option.id === id)
-      );
-      const valueId = matchingId ?? group.options[0]?.id;
-      if (valueId) next[group.key] = valueId;
-    }
-    setSelectedValueIds(next);
-  }, [availableSkus, groups, product]);
+    setSelectedValueIds(initialVariantSelection(product, groups));
+  }, [groups, product]);
 
   React.useEffect(() => {
     if (!addedToast) return;
@@ -287,6 +208,11 @@ export default function ProductDetails() {
 
   const rating = product ? getRating(product) : null;
   const salesCount = product ? getSalesCount(product) : 0;
+  const categoryLabel =
+    product?.categories
+      .map((category) => category.name.trim())
+      .filter(Boolean)
+      .join(', ') ?? '';
   const discountPercent =
     product && product.oldPrice && product.oldPrice > product.price
       ? Math.round((1 - product.price / product.oldPrice) * 100)
@@ -294,17 +220,10 @@ export default function ProductDetails() {
   const activeImage = galleryImages[activeImageIndex] ?? galleryImages[0];
   const wishlisted = product ? isWishlisted(product.id) : false;
 
-  const canSelectOption = (groupKey: string, valueId: string): boolean => {
-    const otherIds = Object.entries(selectedValueIds)
-      .filter(([key]) => key !== groupKey)
-      .map(([, id]) => id)
-      .filter(Boolean);
-    return availableSkus.some(
-      (sku) =>
-        sku.variantValueIds.includes(valueId) &&
-        otherIds.every((id) => sku.variantValueIds.includes(id))
-    );
-  };
+  const canSelectOption = (groupKey: string, valueId: string): boolean =>
+    product
+      ? canSelectVariant(product, selectedValueIds, groupKey, valueId)
+      : false;
 
   const selectValue = (groupKey: string, valueId: string) => {
     setSelectedValueIds((prev) => ({ ...prev, [groupKey]: valueId }));
@@ -468,9 +387,11 @@ export default function ProductDetails() {
 
         <section aria-label={t('detailsLabel')} className="space-y-4">
           <div className="space-y-1">
-            <span className="font-label-caps text-label-caps text-primary tracking-widest uppercase font-bold">
-              {t('flagshipBadge')}
-            </span>
+            {categoryLabel && (
+              <span className="font-label-caps text-label-caps text-primary tracking-widest uppercase font-bold">
+                {categoryLabel}
+              </span>
+            )}
             <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold">
               {product.name}
             </h1>

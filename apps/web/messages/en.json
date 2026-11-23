@@ -62,6 +62,8 @@
       "shippingIncluded": "Free shipping included",
       "viewDetails": "View details",
       "hideDetails": "Hide details",
+      "quickView": "Quick view",
+      "hideQuickView": "Hide quick view",
       "included": "What's included",
       "freeUnits": "{count} free",
       "viewProduct": "View product",
@@ -160,7 +162,6 @@
     "addProductToBag": "Add {name} to bag"
   },
   "product": {
-    "flagshipBadge": "FLAGSHIP ACOUSTICS",
     "goldEdition": "Gold Edition",
     "lossless": "Lossless Audio 24-bit",
     "save": "SAVE 24%",
@@ -228,6 +229,40 @@
       "other": "Option"
     }
   },
+  "offer": {
+    "badgeSingle": "Limited offer",
+    "badgePack": "Bundle deal",
+    "notFoundTitle": "Offer unavailable",
+    "notFoundDesc": "This offer is no longer available.",
+    "browseStore": "Browse the store",
+    "unavailable": "Unavailable",
+    "notStarted": "Starts soon",
+    "ended": "Offer ended",
+    "offerTotal": "Offer total",
+    "regularTotal": "Regular total",
+    "savings": "You save",
+    "startsAt": "Starts",
+    "endsAt": "Ends",
+    "selectVariants": "Choose a variant for each product",
+    "selectVariant": "Choose this item's variant",
+    "paidPiece": "Paid item {index}",
+    "freePiece": "Free item {index}",
+    "packPiece": "Pack item {index}",
+    "noVariants": "Standard option",
+    "selectedVariant": "Selected variant",
+    "stockCount": "{count} in stock",
+    "outOfStock": "Not enough stock",
+    "stockConflict": "Not enough stock for the selected combination. Choose another variant.",
+    "buyQuantity": "Buy {count}",
+    "freeQuantity": "{count} free",
+    "packQuantity": "{count} in pack",
+    "freeShipping": "Free shipping",
+    "addToBag": "Add offer to bag",
+    "checkoutNow": "Checkout now",
+    "alreadyAdded": "Already in your bag",
+    "added": "Offer added to your bag",
+    "imageAlt": "{name} image"
+  },
   "checkout": {
     "title": "Dispatch Bag & Checkout",
     "itemsInBag": "Items in Dispatch Bag",
@@ -277,7 +312,12 @@
     "errorNetwork": "Could not reach the order service. Please try again.",
     "errorGeneric": "Something went wrong while placing your order. Please try again.",
     "errorWithMessage": "The order could not be placed: {message}",
-    "paymentNote": "Payment method: {method}"
+    "paymentNote": "Payment method: {method}",
+    "offersInBag": "Offers in bag",
+    "offerPrice": "Offer price",
+    "offerTotal": "Offer total",
+    "removeOffer": "Remove offer {name}",
+    "freeUnit": "Free"
   },
   "tracking": {
     "vaultBadge": "DISPATCH VAULT",

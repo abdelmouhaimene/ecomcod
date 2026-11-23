@@ -62,6 +62,8 @@
       "shippingIncluded": "Livraison gratuite incluse",
       "viewDetails": "Voir les détails",
       "hideDetails": "Masquer les détails",
+      "quickView": "Aperçu rapide",
+      "hideQuickView": "Masquer l'aperçu",
       "included": "Ce qui est inclus",
       "freeUnits": "{count} offert(s)",
       "viewProduct": "Voir le produit",
@@ -160,7 +162,6 @@
     "addProductToBag": "Ajouter {name} au sac"
   },
   "product": {
-    "flagshipBadge": "ACOUSTIQUE D'EXCEPTION",
     "goldEdition": "Édition Or",
     "lossless": "Audio Sans Perte 24-bit",
     "save": "-24% D'ÉCONOMIE",
@@ -228,6 +229,40 @@
       "other": "Option"
     }
   },
+  "offer": {
+    "badgeSingle": "Offre limitée",
+    "badgePack": "Offre groupée",
+    "notFoundTitle": "Offre indisponible",
+    "notFoundDesc": "Cette offre n'est plus disponible.",
+    "browseStore": "Parcourir la boutique",
+    "unavailable": "Indisponible",
+    "notStarted": "Bientôt disponible",
+    "ended": "Offre terminée",
+    "offerTotal": "Total de l'offre",
+    "regularTotal": "Total habituel",
+    "savings": "Vous économisez",
+    "startsAt": "Début",
+    "endsAt": "Fin",
+    "selectVariants": "Choisissez une variante pour chaque produit",
+    "selectVariant": "Choisissez la variante de cet article",
+    "paidPiece": "Article payant {index}",
+    "freePiece": "Article offert {index}",
+    "packPiece": "Article du pack {index}",
+    "noVariants": "Option standard",
+    "selectedVariant": "Variante sélectionnée",
+    "stockCount": "{count} en stock",
+    "outOfStock": "Stock insuffisant",
+    "stockConflict": "Stock insuffisant pour la combinaison choisie. Sélectionnez une autre variante.",
+    "buyQuantity": "Achetez {count}",
+    "freeQuantity": "{count} offert(s)",
+    "packQuantity": "{count} dans le pack",
+    "freeShipping": "Livraison gratuite",
+    "addToBag": "Ajouter l'offre au sac",
+    "checkoutNow": "Commander",
+    "alreadyAdded": "Déjà dans votre sac",
+    "added": "Offre ajoutée à votre sac",
+    "imageAlt": "Image de {name}"
+  },
   "checkout": {
     "title": "Sac d'Expédition & Paiement",
     "itemsInBag": "Articles dans le Sac",
@@ -277,7 +312,12 @@
     "errorNetwork": "Impossible de joindre le service de commande. Veuillez réessayer.",
     "errorGeneric": "Une erreur est survenue lors de la commande. Veuillez réessayer.",
     "errorWithMessage": "La commande n'a pas pu être passée : {message}",
-    "paymentNote": "Moyen de paiement : {method}"
+    "paymentNote": "Moyen de paiement : {method}",
+    "offersInBag": "Offres dans le sac",
+    "offerPrice": "Prix de l'offre",
+    "offerTotal": "Total de l'offre",
+    "removeOffer": "Supprimer l'offre {name}",
+    "freeUnit": "Offert"
   },
   "tracking": {
     "vaultBadge": "COFFRE D'EXPÉDITION",

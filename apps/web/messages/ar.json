@@ -62,6 +62,8 @@
       "shippingIncluded": "شحن مجاني مشمول",
       "viewDetails": "عرض التفاصيل",
       "hideDetails": "إخفاء التفاصيل",
+      "quickView": "نظرة سريعة",
+      "hideQuickView": "إخفاء النظرة السريعة",
       "included": "ما يشمله العرض",
       "freeUnits": "{count} مجاني",
       "viewProduct": "عرض المنتج",
@@ -160,7 +162,6 @@
     "addProductToBag": "إضافة {name} إلى الحقيبة"
   },
   "product": {
-    "flagshipBadge": "صوتيات رائدة",
     "goldEdition": "الإصدار الذهبي",
     "lossless": "صوت نقي 24 بت",
     "save": "وفر 24%",
@@ -228,6 +229,40 @@
       "other": "خيار"
     }
   },
+  "offer": {
+    "badgeSingle": "عرض محدود",
+    "badgePack": "عرض الحزمة",
+    "notFoundTitle": "العرض غير متاح",
+    "notFoundDesc": "هذا العرض لم يعد متاحاً.",
+    "browseStore": "تصفح المتجر",
+    "unavailable": "غير متاح",
+    "notStarted": "يبدأ قريباً",
+    "ended": "انتهى العرض",
+    "offerTotal": "إجمالي العرض",
+    "regularTotal": "الإجمالي العادي",
+    "savings": "وفّرت",
+    "startsAt": "البداية",
+    "endsAt": "النهاية",
+    "selectVariants": "اختر خياراً لكل منتج",
+    "selectVariant": "اختر خيار هذا العنصر",
+    "paidPiece": "عنصر مدفوع {index}",
+    "freePiece": "عنصر مجاني {index}",
+    "packPiece": "عنصر في الحزمة {index}",
+    "noVariants": "الخيار القياسي",
+    "selectedVariant": "الخيار المختار",
+    "stockCount": "{count} متوفر",
+    "outOfStock": "المخزون غير كافٍ",
+    "stockConflict": "المخزون غير كافٍ للمجموعة المختارة. اختر خياراً آخر.",
+    "buyQuantity": "اشترِ {count}",
+    "freeQuantity": "{count} مجاني",
+    "packQuantity": "{count} في الحزمة",
+    "freeShipping": "شحن مجاني",
+    "addToBag": "إضافة العرض إلى الحقيبة",
+    "checkoutNow": "إتمام الشراء",
+    "alreadyAdded": "موجود بالفعل في حقيبتك",
+    "added": "تمت إضافة العرض إلى حقيبتك",
+    "imageAlt": "صورة {name}"
+  },
   "checkout": {
     "title": "حقيبة الإرسال والدفع",
     "itemsInBag": "العناصر في حقيبة الإرسال",
@@ -277,7 +312,12 @@
     "errorNetwork": "تعذّر الوصول إلى خدمة الطلبات. يرجى المحاولة مرة أخرى.",
     "errorGeneric": "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى.",
     "errorWithMessage": "تعذّر تقديم الطلب: {message}",
-    "paymentNote": "طريقة الدفع: {method}"
+    "paymentNote": "طريقة الدفع: {method}",
+    "offersInBag": "العروض في الحقيبة",
+    "offerPrice": "سعر العرض",
+    "offerTotal": "إجمالي العرض",
+    "removeOffer": "إزالة العرض {name}",
+    "freeUnit": "مجاني"
   },
   "tracking": {
     "vaultBadge": "خزينة الإرسال",

@@ -282,6 +282,78 @@ describe('OrdersService', () => {
         );
     });
 
+    it('allows a different variant for each unit of a repeated product', async () => {
+        await service.create(dto({
+            items: [
+                { skuId: 'sku-a', quantity: 1 },
+                { skuId: 'sku-a2', quantity: 1 },
+            ],
+            offers: [{
+                offerId: 'offer-free', times: 1,
+                selections: [
+                    { productId: 'p1', skuId: 'sku-a', quantity: 1 },
+                    { productId: 'p1', skuId: 'sku-a2', quantity: 1 },
+                    // The free unit can use another variant of the same product.
+                    { productId: 'p1', skuId: 'sku-a', quantity: 1 },
+                ],
+            }],
+        }));
+
+        expect(savedItems).toMatchObject([
+            { skuId: 'sku-a', quantity: 1, kind: 'REGULAR' },
+            { skuId: 'sku-a2', quantity: 1, kind: 'REGULAR' },
+            { skuId: 'sku-a', quantity: 1, kind: 'SINGLE_FREE' },
+        ]);
+        expect(savedOrder).toMatchObject({ subtotal: 40, discount: 20, total: 20 });
+        const movementCall = manager.save.mock.calls
+            .find((call) => call[0]?.name === 'StockMovement');
+        expect(movementCall?.[1]).toEqual(expect.arrayContaining([
+            expect.objectContaining({ skuId: 'sku-a', quantity: -2 }),
+            expect.objectContaining({ skuId: 'sku-a2', quantity: -1 }),
+        ]));
+    });
+
+    it('rejects when the unit selections do not cover every unit', async () => {
+        await expect(service.create(dto({
+            items: [{ skuId: 'sku-a', quantity: 2 }],
+            offers: [{
+                offerId: 'offer-free', times: 1,
+                selections: [{ productId: 'p1', skuId: 'sku-a', quantity: 2 }],
+            }],
+        }))).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('allows different variants for repeated units inside a pack', async () => {
+        const repeatedPack = {
+            ...packOffer,
+            id: 'offer-pack-repeat',
+            packPrice: 30,
+            packItems: [
+                { ...packOffer.packItems[0], quantity: 2 },
+                packOffer.packItems[1],
+            ],
+        };
+        offersRepo.find.mockResolvedValueOnce([repeatedPack]);
+
+        await service.create(dto({
+            items: [],
+            offers: [{
+                offerId: 'offer-pack-repeat', times: 1,
+                selections: [
+                    { productId: 'p1', skuId: 'sku-a', quantity: 1 },
+                    { productId: 'p1', skuId: 'sku-a2', quantity: 1 },
+                    { productId: 'p2', skuId: 'sku-b', quantity: 1 },
+                ],
+            }],
+        }));
+
+        expect(savedItems).toMatchObject([
+            { skuId: 'sku-a', quantity: 1, kind: 'PACK' },
+            { skuId: 'sku-a2', quantity: 1, kind: 'PACK' },
+            { skuId: 'sku-b', quantity: 1, kind: 'PACK' },
+        ]);
+    });
+
     it('rejects an applied offer with no variant selections', async () => {
         await expect(service.create(dto({
             items: [{ skuId: 'sku-a', quantity: 2 }],

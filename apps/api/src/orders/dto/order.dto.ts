@@ -66,30 +66,19 @@ export class OrderItemDto {
     quantity: number;
 }
 
-function uniqueSelectionProducts(): PropertyDecorator {
-    return (target: object, propertyName: string | symbol) => {
-        registerDecorator({
-            name: 'uniqueSelectionProducts',
-            target: target.constructor,
-            propertyName: propertyName as string,
-            options: { message: 'A product can be selected only once per offer.' },
-            validator: {
-                validate: (value: unknown) => {
-                    if (!Array.isArray(value)) return true;
-                    const ids = value.map((selection: AppliedOfferSelectionDto) => selection?.productId);
-                    return new Set(ids).size === ids.length;
-                },
-            },
-        });
-    };
-}
-
 export class AppliedOfferSelectionDto {
     @IsUUID('4')
     productId: string;
 
     @IsUUID('4')
     skuId: string;
+
+    /** Units covered by this SKU. A single legacy selection covers all units. */
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    quantity?: number;
 }
 
 export class AppliedOfferDto {
@@ -101,10 +90,9 @@ export class AppliedOfferDto {
     @Min(1)
     times: number;
 
-    /** One variant choice per product in the offer; the API never guesses. */
+    /** One choice per unit; several entries for one product are allowed. */
     @IsArray()
     @ArrayNotEmpty()
-    @uniqueSelectionProducts()
     @ValidateNested({ each: true })
     @Type(() => AppliedOfferSelectionDto)
     selections: AppliedOfferSelectionDto[];

@@ -84,9 +84,6 @@ export function Footer() {
                   >
                     {store?.email || t('conciergeEmail')}
                   </a>
-                  <p className="font-label-caps text-[10px] text-outline mt-0.5">
-                    {t('conciergeHours')}
-                  </p>
                 </div>
               </div>
             </div>

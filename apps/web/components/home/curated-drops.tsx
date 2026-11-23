@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import type { PublicOffer, PublicProduct } from '@repo/types';
+import { OfferCountdown } from '../offers/offer-countdown';
 import { catalogApi } from '../../lib/api';
 import { formatPrice, getPrimaryImageUrl, getPrimarySku } from '../../lib/catalog';
 
@@ -65,64 +66,6 @@ function formatOrdinal(value: number, locale: string): string {
   }
 
   return number;
-}
-
-/** Countdown is mounted per card so the whole list never re-renders every tick. */
-function OfferCountdown({ endsAt }: { endsAt: string | null }) {
-  const t = useTranslations('home');
-  const [remaining, setRemaining] = React.useState<number | null>(null);
-
-  React.useEffect(() => {
-    if (!endsAt) return;
-    const target = new Date(endsAt).getTime();
-    if (Number.isNaN(target)) return;
-
-    const update = () => setRemaining(Math.max(0, target - Date.now()));
-    update();
-    const interval = window.setInterval(update, 1000);
-    return () => window.clearInterval(interval);
-  }, [endsAt]);
-
-  const pad = (value: number) => String(value).padStart(2, '0');
-
-  if (!endsAt) {
-    return (
-      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-surface-container text-secondary font-label-caps text-[9px] tracking-wider">
-        <span className="material-symbols-outlined text-[12px]">schedule</span>
-        <span>{t('offers.noEndDate')}</span>
-      </span>
-    );
-  }
-
-  if (remaining === null) {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded bg-surface-container text-secondary font-label-caps text-[9px] tracking-wider">
-        …
-      </span>
-    );
-  }
-
-  if (remaining <= 0) {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded bg-error-container text-error font-label-caps text-[9px] tracking-wider">
-        {t('offers.ended')}
-      </span>
-    );
-  }
-
-  const seconds = Math.floor(remaining / 1000);
-  return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded bg-on-surface text-surface-container-lowest font-label-caps text-[9px] tracking-wider">
-      <strong className="font-label-numeric font-bold text-primary-fixed-dim">
-        {t('offers.timeLeft', {
-          days: pad(Math.floor(seconds / 86400)),
-          hours: pad(Math.floor((seconds % 86400) / 3600)),
-          minutes: pad(Math.floor((seconds % 3600) / 60)),
-          seconds: pad(seconds % 60),
-        })}
-      </strong>
-    </span>
-  );
 }
 
 /** Product imagery stays recognizable whether an offer has one item or many. */
@@ -282,17 +225,26 @@ function OfferCard({
             )}
           </div>
 
-          <button
-            onClick={() => setExpanded((current) => !current)}
-            className="px-3 py-2 border border-outline-variant/60 rounded-lg text-primary hover:bg-surface-container active:scale-95 transition-all flex items-center space-x-1 font-label-caps text-[10px] font-semibold tracking-wider flex-shrink-0"
-            type="button"
-            aria-expanded={expanded}
-          >
-            <span>{expanded ? t('offers.hideDetails') : t('offers.viewDetails')}</span>
-            <span className="material-symbols-outlined text-[14px]">
-              {expanded ? 'expand_less' : 'expand_more'}
-            </span>
-          </button>
+          <div className="flex flex-shrink-0 items-center gap-1.5">
+            <button
+              onClick={() => setExpanded((current) => !current)}
+              className="px-2 py-2 text-secondary hover:text-primary transition-colors flex items-center"
+              type="button"
+              aria-expanded={expanded}
+              aria-label={expanded ? t('offers.hideQuickView') : t('offers.quickView')}
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {expanded ? 'expand_less' : 'expand_more'}
+              </span>
+            </button>
+            <Link
+              href={`/offers/${encodeURIComponent(card.id)}`}
+              className="px-3 py-2 border border-outline-variant/60 rounded-lg text-primary hover:bg-surface-container active:scale-95 transition-all flex items-center space-x-1 font-label-caps text-[10px] font-semibold tracking-wider"
+            >
+              <span>{t('offers.viewDetails')}</span>
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </Link>
+          </div>
         </div>
 
         {expanded && (

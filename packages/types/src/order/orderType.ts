@@ -16,16 +16,22 @@ export interface OrderItemPayload {
     quantity: number;
 }
 
-/** Variant chosen by the client for one product included in an offer. */
+/**
+ * Variant chosen by the client for one or more units of an offered product.
+ * Sending several entries for the same product lets each unit have its own SKU.
+ * Omitting `quantity` in a single entry keeps the legacy meaning: that SKU
+ * covers every unit of the product in the offer.
+ */
 export interface AppliedOfferSelectionPayload {
     productId: string;
     skuId: string;
+    quantity?: number;
 }
 
 export interface AppliedOfferPayload {
     offerId: string;
     times: number;
-    /** One selection per product in the offer; the API never guesses a variant. */
+    /** Every unit of every offered product needs an explicit variant choice. */
     selections: AppliedOfferSelectionPayload[];
 }
 

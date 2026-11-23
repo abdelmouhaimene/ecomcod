@@ -17,7 +17,16 @@ export default function CheckoutPage() {
   const t = useTranslations('checkout');
   const tCommon = useTranslations('common');
   const router = useRouter();
-  const { cart, updateQuantity, removeFromCart, clearCart, subtotal, totalCount } = useStore();
+  const {
+    cart,
+    appliedOffers,
+    updateQuantity,
+    removeFromCart,
+    removeAppliedOffer,
+    clearCart,
+    subtotal,
+    totalCount,
+  } = useStore();
 
   const [shippingOption, setShippingOption] = React.useState<ShippingOption>('whiteGlove');
   const [paymentOption, setPaymentOption] = React.useState<PaymentOption>('applePay');
@@ -27,10 +36,28 @@ export default function CheckoutPage() {
   const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
 
   const currency = tCommon('currency');
-  const shippingCost = shippingOption === 'vaultCourier' ? 45 : 0;
+  const hasFreeShipping = appliedOffers.some((offer) => offer.freeShipping);
+  const shippingCost = hasFreeShipping || shippingOption === 'whiteGlove' ? 0 : 45;
   const vaultInsurance = 25;
   const tax = Math.round(subtotal * 0.08);
   const total = subtotal + shippingCost + vaultInsurance + tax;
+
+  // Buy-X-get-Y offers need their paid units in `items`; the API adds free and
+  // pack lines itself from `offers`, so those lines are never sent as regular.
+  const offerPaidItems = [
+    ...appliedOffers
+      .filter((offer) => offer.mode === 'SINGLE_PRODUCT')
+      .flatMap((offer) =>
+        offer.items
+          .filter((item) => !item.isFree)
+          .map((item) => ({ skuId: item.skuId, quantity: item.quantity }))
+      )
+      .reduce((map, item) => {
+        map.set(item.skuId, (map.get(item.skuId) ?? 0) + item.quantity);
+        return map;
+      }, new Map<string, number>())
+      .entries(),
+  ].map(([skuId, quantity]) => ({ skuId, quantity }));
 
   const paymentOptions = React.useMemo<
     Array<{ id: PaymentOption; label: string; icon: string }>
@@ -57,7 +84,7 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
-    if (cart.length === 0 || isPlacingOrder) return;
+    if ((cart.length === 0 && appliedOffers.length === 0) || isPlacingOrder) return;
 
     const name = customerName.trim();
     const email = customerEmail.trim();
@@ -76,7 +103,15 @@ export default function CheckoutPage() {
     try {
       const order = await catalogApi.createOrder({
         source: 'WEB',
-        items: cart.map((item) => ({ skuId: item.skuId, quantity: item.quantity })),
+        items: [
+          ...cart.map((item) => ({ skuId: item.skuId, quantity: item.quantity })),
+          ...offerPaidItems,
+        ],
+        offers: appliedOffers.map((offer) => ({
+          offerId: offer.offerId,
+          times: offer.times,
+          selections: offer.selections,
+        })),
         customerName: name,
         customerEmail: email,
         notes: t('paymentNote', { method: selectedPaymentLabel }),
@@ -131,7 +166,7 @@ export default function CheckoutPage() {
             </Link>
           </div>
 
-          {cart.length === 0 ? (
+          {cart.length === 0 && appliedOffers.length === 0 ? (
             <div className="p-8 text-center bg-surface-container-lowest rounded-xl subtle-hairline">
               <span className="material-symbols-outlined text-[36px] text-outline mb-2">
                 shopping_bag
@@ -216,6 +251,82 @@ export default function CheckoutPage() {
             </div>
           )}
         </section>
+
+        {appliedOffers.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="font-label-caps text-[11px] text-primary uppercase tracking-widest font-bold">
+              {t('offersInBag')}
+            </h2>
+            <div className="space-y-2.5">
+              {appliedOffers.map((offer) => (
+                <article
+                  key={offer.id}
+                  className="bg-surface-container-lowest rounded-xl p-3 subtle-hairline border border-primary-container/30 space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="font-title-md text-[13px] font-semibold text-on-surface truncate">
+                        {offer.name}
+                      </h3>
+                      <p className="font-label-caps text-[9px] text-primary uppercase tracking-wider">
+                        {t('offerPrice')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => removeAppliedOffer(offer.id)}
+                      className="text-outline hover:text-error transition-colors p-0.5"
+                      type="button"
+                      aria-label={t('removeOffer', { name: offer.name })}
+                    >
+                      <span className="material-symbols-outlined text-[15px]">delete</span>
+                    </button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {offer.items.map((item, index) => (
+                      <div key={`${item.skuId}-${index}`} className="flex items-center gap-2">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-8 h-8 rounded object-contain bg-surface-container-low flex-shrink-0"
+                          />
+                        ) : (
+                          <span className="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center flex-shrink-0">
+                            <span className="material-symbols-outlined text-[14px] text-outline">image</span>
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-body-sm text-[11px] text-on-surface truncate">
+                            {item.name}
+                          </p>
+                          <p className="font-label-caps text-[9px] text-secondary">
+                            {item.material}
+                          </p>
+                        </div>
+                        <span className="font-label-numeric text-[10px] text-secondary whitespace-nowrap">
+                          {item.quantity} × {formatPrice(item.unitPrice, currency)}
+                        </span>
+                        {item.isFree && (
+                          <span className="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-caps text-[9px] font-bold">
+                            {t('freeUnit')}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-baseline pt-1 border-t border-outline-variant/30">
+                    <span className="font-label-caps text-[10px] text-secondary uppercase tracking-wider">
+                      {t('offerTotal')}
+                    </span>
+                    <strong className="font-label-numeric text-[13px] text-on-surface">
+                      {formatPrice(offer.total, currency)}
+                    </strong>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="p-3.5 rounded-xl bg-surface-container-low border border-primary-container/40 flex items-start space-x-3 gold-glow-subtle">
           <span className="material-symbols-outlined text-primary text-[22px] mt-0.5">
@@ -323,7 +434,9 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <span className="font-label-numeric text-[12px] font-bold text-on-surface">
-                {t('vaultCourierPrice', { price: formatPrice(45, currency) })}
+                {hasFreeShipping
+                  ? t('free')
+                  : t('vaultCourierPrice', { price: formatPrice(45, currency) })}
               </span>
             </button>
           </div>
@@ -426,7 +539,7 @@ export default function CheckoutPage() {
           </div>
           <button
             onClick={() => void handlePlaceOrder()}
-            disabled={cart.length === 0 || isPlacingOrder}
+            disabled={(cart.length === 0 && appliedOffers.length === 0) || isPlacingOrder}
             className="flex-1 py-3 px-5 rounded-lg bg-on-surface text-surface-container-lowest border border-primary-container/60 font-label-caps text-[11px] font-bold tracking-wider flex items-center justify-center space-x-2 gold-glow-interactive active:scale-95 transition-all hover:bg-primary disabled:opacity-50 disabled:pointer-events-none"
             type="button"
           >
