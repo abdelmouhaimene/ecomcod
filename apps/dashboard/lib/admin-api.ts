@@ -5,24 +5,32 @@ import {
   type ApiErrorResponse,
   type CategoryPayload,
   type ChangeAdminPasswordPayload,
+  type CreateAdminCommentPayload,
   type CreateAdminPayload,
   type FamilyPayload,
+  type GalleryPhotoPayload,
+  type GalleryState,
+  type GalleryStatusPayload,
   type MessageResponse,
   type OfferPayload,
   type OrderPayload,
   type ProductPayload,
   type PublicAdmin,
   type PublicCategory,
+  type PublicComment,
   type PublicFamily,
+  type PublicGalleryPhoto,
   type PublicOffer,
   type PublicOrder,
   type PublicProduct,
+  type PublicStoreInfo,
   type PublicStockAvailability,
   type PublicStockEntry,
   type PublicSupplier,
   type PublicUser,
   type StockEntryFilter,
   type StockEntryPayload,
+  type StoreInfoPayload,
   type SupplierPayload,
   type UploadImageResponse,
 } from '@repo/types';
@@ -33,6 +41,12 @@ export { AdminRole };
 /** Catalog contracts used by the dashboard editors. */
 export type {
   CategoryPayload,
+  CreateAdminCommentPayload,
+  PublicComment,
+  GalleryPhotoPayload,
+  GalleryState,
+  GalleryStatusPayload,
+  PublicGalleryPhoto,
   FamilyPayload,
   OfferPayload,
   OrderPayload,
@@ -47,11 +61,13 @@ export type {
   PublicProductImage,
   PublicProductSku,
   PublicProductVariant,
+  PublicStoreInfo,
   PublicStockAvailability,
   PublicStockEntry,
   PublicSupplier,
   StockEntryFilter,
   StockEntryPayload,
+  StoreInfoPayload,
   SupplierPayload,
   UploadImageResponse,
 } from '@repo/types';
@@ -190,6 +206,30 @@ export const adminApi = {
     }),
   removeOffer: (id: string) =>
     adminFetch<void>(`/v1/admin/offers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Testimonials (all active admins may read; system/manager may create/delete).
+  listComments: () => adminFetch<PublicComment[]>('/v1/admin/comments'),
+  createComment: (payload: CreateAdminCommentPayload) =>
+    adminFetch<PublicComment>('/v1/admin/comments', { method: 'POST', body: payload }),
+  removeComment: (id: string) =>
+    adminFetch<void>(`/v1/admin/comments/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Gallery (all active admins may read; system/manager may mutate).
+  getGallery: () => adminFetch<GalleryState>('/v1/admin/gallery'),
+  setGalleryStatus: (payload: GalleryStatusPayload) =>
+    adminFetch<GalleryState>('/v1/admin/gallery/status', { method: 'PUT', body: payload }),
+  createGalleryPhoto: (payload: GalleryPhotoPayload) =>
+    adminFetch<PublicGalleryPhoto>('/v1/admin/gallery/photos', {
+      method: 'POST',
+      body: payload,
+    }),
+  removeGalleryPhoto: (id: string) =>
+    adminFetch<void>(`/v1/admin/gallery/photos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Store page (all active admins may read; system/manager may edit).
+  getStore: () => adminFetch<PublicStoreInfo>('/v1/admin/store'),
+  updateStore: (payload: StoreInfoPayload) =>
+    adminFetch<PublicStoreInfo>('/v1/admin/store', { method: 'PUT', body: payload }),
 
   // Suppliers (all active admins may read; system/manager may mutate).
   listSuppliers: () => adminFetch<PublicSupplier[]>('/v1/admin/suppliers'),

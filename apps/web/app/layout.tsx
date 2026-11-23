@@ -5,7 +5,9 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { ThemeProvider } from '../components/theme-provider';
 import { StoreProvider } from '../context/store-context';
 import { AuthProvider } from '../context/auth-context';
+import { StoreInfoProvider } from '../context/store-info-context';
 import { Header } from '../components/layout/header';
+import { Footer } from '../components/layout/footer';
 import { BottomNav } from '../components/layout/bottom-nav';
 import './globals.css';
 
@@ -58,9 +60,12 @@ export default async function RootLayout({
           >
             <StoreProvider>
               <AuthProvider>
-                <Header currentLocale={locale} />
-                <div className="flex-1 pb-16 md:pb-0">{children}</div>
-                <BottomNav />
+                <StoreInfoProvider>
+                  <Header currentLocale={locale} />
+                  <div className="flex-1">{children}</div>
+                  <Footer />
+                  <BottomNav />
+                </StoreInfoProvider>
               </AuthProvider>
             </StoreProvider>
           </ThemeProvider>

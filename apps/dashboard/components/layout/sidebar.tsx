@@ -78,6 +78,36 @@ const navItems: NavItem[] = [
         ),
     },
     {
+        href: '/comments',
+        labelKey: 'navComments',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5h7v7H8l-3 3v-3H4zM14 5h6v7h-3l-3 3v-3h-1z" />
+            </svg>
+        ),
+    },
+    {
+        href: '/gallery',
+        labelKey: 'navGallery',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="14" rx="2" />
+                <circle cx="8.5" cy="9.5" r="1.5" />
+                <path d="m4.5 17 5-5 3.5 3.5 2.5-2.5 4 4" />
+            </svg>
+        ),
+    },
+    {
+        href: '/store',
+        labelKey: 'navStore',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.5 9.5 5.5 4h13l2 5.5v10h-17z" />
+                <path d="M3.5 9.5h17M8 19.5v-6h8v6M8.5 9.5V7h7v2.5" />
+            </svg>
+        ),
+    },
+    {
         href: '/pos',
         labelKey: 'navPos',
         icon: (

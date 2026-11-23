@@ -36,6 +36,12 @@ export interface PublicOffer<TDate = string> {
     isActive: boolean;
     startsAt: TDate | null;
     endsAt: TDate | null;
+    /**
+     * True when the offer grants free shipping. Derived from the single rule
+     * mode so clients can use it for shipping calculations without re-deriving
+     * the offer semantics.
+     */
+    freeShipping: boolean;
     /** Fixed bundle price, only for `PACK` offers. */
     packPrice: number | null;
     singleRule: PublicOfferSingleRule<TDate> | null;

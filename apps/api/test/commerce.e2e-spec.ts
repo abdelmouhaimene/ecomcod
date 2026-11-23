@@ -361,6 +361,63 @@ describe('Commerce (e2e)', () => {
                 .expect(204));
     });
 
+    it('hides manually inactive and out-of-time offers from the active feed', async () => {
+        const createOffer = async (name: string, payload: Record<string, unknown>) => {
+            const response = await request(app.getHttpServer())
+                .post('/v1/admin/offers')
+                .set('Cookie', managerCookie)
+                .send({ name, type: 'SINGLE_PRODUCT', ...payload })
+                .expect(201);
+            return response.body.id as string;
+        };
+        const buyGetRule = {
+            productId: productAId,
+            mode: 'BUY_X_GET_Y_FREE',
+            buyQuantity: 2,
+            freeQuantity: 1,
+        };
+
+        const inactiveId = await createOffer(`Inactive ${stamp}`, {
+            isActive: false,
+            singleRule: buyGetRule,
+        });
+        const futureId = await createOffer(`Future ${stamp}`, {
+            isActive: true,
+            startsAt: new Date(Date.now() + 86_400_000).toISOString(),
+            singleRule: buyGetRule,
+        });
+        const expiredId = await createOffer(`Expired ${stamp}`, {
+            isActive: true,
+            endsAt: new Date(Date.now() - 86_400_000).toISOString(),
+            singleRule: buyGetRule,
+        });
+        const shippingId = await createOffer(`Shipping ${stamp}`, {
+            isActive: true,
+            singleRule: {
+                productId: productBId,
+                mode: 'BUY_X_GET_FREE_SHIPPING',
+                buyQuantity: 1,
+            },
+        });
+
+        try {
+            const active = await request(app.getHttpServer()).get('/v1/offers/active').expect(200);
+            const ids = active.body.map((offer: { id: string }) => offer.id);
+            expect(ids).not.toContain(inactiveId);
+            expect(ids).not.toContain(futureId);
+            expect(ids).not.toContain(expiredId);
+            expect(active.body.find((offer: { id: string }) => offer.id === shippingId))
+                .toMatchObject({ freeShipping: true });
+        } finally {
+            for (const id of [inactiveId, futureId, expiredId, shippingId]) {
+                await request(app.getHttpServer())
+                    .delete(`/v1/admin/offers/${id}`)
+                    .set('Cookie', managerCookie)
+                    .expect(204);
+            }
+        }
+    });
+
     it('serves public products with SKUs and no variant price', async () => {
         const products = await request(app.getHttpServer()).get('/v1/products').expect(200);
         const product = products.body.find((item: { id: string }) => item.id === productAId);
@@ -369,6 +426,12 @@ describe('Commerce (e2e)', () => {
         expect(product.skus[0]).not.toHaveProperty('price');
 
         await request(app.getHttpServer()).get(`/v1/products/${productAId}`).expect(200);
+    });
+
+    it('serves public categories with their optional icon', async () => {
+        const categories = await request(app.getHttpServer()).get('/v1/categories').expect(200);
+        const category = categories.body.find((item: { id: string }) => item.id === categoryId);
+        expect(category).toMatchObject({ id: categoryId, icon: null });
     });
 
     it('checks out regular items from the product price and deducts stock', async () => {

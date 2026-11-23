@@ -9,6 +9,9 @@ import { ReshapeVariantsAndStockEntries1795248000000 } from './migrations/179524
 import { ProductScopedOffers1795324400000 } from './migrations/1795324400000-ProductScopedOffers.js';
 import { SupplierContacts1795410000000 } from './migrations/1795410000000-SupplierContacts.js';
 import { CategoryIcon1795410800000 } from './migrations/1795410800000-CategoryIcon.js';
+import { CreateComments1795411600000 } from './migrations/1795411600000-CreateComments.js';
+import { CreateGallery1795412400000 } from './migrations/1795412400000-CreateGallery.js';
+import { CreateStore1795413200000 } from './migrations/1795413200000-CreateStore.js';
 
 @Module({
   imports: [
@@ -30,6 +33,9 @@ import { CategoryIcon1795410800000 } from './migrations/1795410800000-CategoryIc
           ProductScopedOffers1795324400000,
           SupplierContacts1795410000000,
           CategoryIcon1795410800000,
+          CreateComments1795411600000,
+          CreateGallery1795412400000,
+          CreateStore1795413200000,
         ];
 
         return {

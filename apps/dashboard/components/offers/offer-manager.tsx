@@ -76,6 +76,15 @@ function toIsoOrNull(value: string): string | null {
     return date.toISOString();
 }
 
+/** Manual switch + date window both decide whether an offer is live right now. */
+function isOfferActiveNow(offer: PublicOffer): boolean {
+    if (!offer.isActive) return false;
+    const now = Date.now();
+    if (offer.startsAt && new Date(offer.startsAt).getTime() > now) return false;
+    if (offer.endsAt && new Date(offer.endsAt).getTime() < now) return false;
+    return true;
+}
+
 function offerToForm(offer: PublicOffer): OfferFormState {
     return {
         name: offer.name,
@@ -767,8 +776,8 @@ export function OfferManager(): React.JSX.Element {
                                                 : t('offerTypeSingle')}
                                         </td>
                                         <td>
-                                            <span className={offer.isActive ? 'chip selected' : 'chip'}>
-                                                {offer.isActive ? t('active') : t('inactive')}
+                                            <span className={isOfferActiveNow(offer) ? 'chip selected' : 'chip'}>
+                                                {isOfferActiveNow(offer) ? t('active') : t('inactive')}
                                             </span>
                                         </td>
                                         <td className="muted">

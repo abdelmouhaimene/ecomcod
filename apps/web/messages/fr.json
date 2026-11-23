@@ -2,7 +2,7 @@
   "common": {
     "brandName": "AURELIA TECH",
     "brandSubtitle": "ATELIER DE PRÉCISION",
-    "currency": "€",
+    "currency": "DZD",
     "search": "Rechercher du matériel haut de gamme...",
     "close": "Fermer",
     "back": "Retour",
@@ -29,7 +29,7 @@
     "featuredProduct": "Aura Pro Studio"
   },
   "home": {
-    "curatedDrops": "Éditions Rares",
+    "curatedDrops": "Offres limitées",
     "exclusiveOffer": "-25% EXCLUSIF",
     "edition01": "ÉDITION 01 SUR 150",
     "acousticMastery": "Maîtrise Acoustique",
@@ -42,9 +42,11 @@
     "watchDesc": "Verre en Cristal de Saphir",
     "dockTitle": "Station MagCharge Desk Dock",
     "dockDesc": "Double Pad Qi2 25W",
-    "hardwareCatalog": "Catalogue Hardware",
-    "curatedSegments": "Segments Curatés",
+    "hardwareCatalog": "Catégories",
+    "curatedSegments": "Parcourir divers produits",
     "allSpecs": "Toutes les spécifications",
+    "categoriesLoading": "Chargement des catégories…",
+    "categoriesEmpty": "Aucune catégorie disponible.",
     "categories": {
       "audio": "Audio & Hi-Fi",
       "wearables": "Montres & Bagues",
@@ -53,13 +55,33 @@
       "optics": "Optique",
       "cases": "Étuis d'Art"
     },
-    "mechanicalRefinement": "Raffinement Mécanique",
-    "featuredInnovations": "Innovations en Vedette",
-    "filterTags": {
-      "all": "Tous les modèles",
-      "trending": "Tendances",
-      "audio": "Audio Haute Résolution",
-      "wearables": "Accessoires Portés"
+    "offers": {
+      "noEndDate": "Sans date de fin",
+      "ended": "Offre terminée",
+      "timeLeft": "{days}j {hours}h {minutes}m {seconds}s",
+      "save": "Économisez {amount}",
+      "shippingIncluded": "Livraison gratuite incluse",
+      "viewDetails": "Voir les détails",
+      "hideDetails": "Masquer les détails",
+      "included": "Ce qui est inclus",
+      "freeUnits": "{count} offert(s)",
+      "viewProduct": "Voir le produit",
+      "previous": "Offre précédente",
+      "next": "Offre suivante",
+      "goTo": "Aller à l'offre {index}",
+      "effectivePrice": "Prix effectif par article",
+      "regularPrice": "Prix par article",
+      "payFor": "Payez {buy} sur {total} — {amount}",
+      "packPrice": "Prix du pack",
+      "packNote": "{count} articles dans ce pack",
+      "badgeSingle": "Offre limitée",
+      "badgePack": "Offre groupée",
+      "titleBuyGetOne": "Achetez {buy} ({product}) et le {ordinal} est offert",
+      "titleBuyGetMany": "Achetez {buy} ({product}) et {free} de plus offerts",
+      "titleFreeShipping": "Achetez {buy} ({product}) et la livraison est offerte",
+      "titlePack": "Pack de {count} articles : {product}",
+      "empty": "Aucune offre limitée pour le moment. Revenez bientôt.",
+      "loading": "Chargement des offres limitées…"
     },
     "products": {
       "soundbar": {
@@ -87,10 +109,32 @@
       "badge": "Vérifications Patrons",
       "title": "Évaluations Clients",
       "collector": "COLLECTIONNEUR VÉRIFIÉ",
-      "location": "Boutique NYC",
-      "quote": "« La clarté acoustique et la finition en aluminium brossé or surpassent tout ce qu'on trouve dans le commerce. Aurelia incarne l'informatique physique de luxe. »",
-      "author": "Julian Vance",
-      "role": "Rédacteur Tech en Chef & Collectionneur"
+      "previous": "Commentaire précédent",
+      "next": "Commentaire suivant",
+      "goTo": "Aller au commentaire {index}",
+      "imageAlt": "Portrait de {name}",
+      "empty": "Aucun commentaire pour le moment. Soyez le premier à partager votre avis.",
+      "loading": "Chargement des commentaires…",
+      "formTitle": "Partagez votre expérience",
+      "formDescription": "Seuls les clients dont l’adresse e-mail est vérifiée peuvent commenter.",
+      "contentLabel": "Votre commentaire",
+      "contentPlaceholder": "Dites-nous ce que vous en pensez…",
+      "ratingLabel": "Note",
+      "submit": "Publier le commentaire",
+      "submitting": "Publication…",
+      "success": "Merci — votre commentaire a été publié.",
+      "error": "Impossible de publier votre commentaire. Réessayez.",
+      "verifiedOnly": "Connectez-vous avec un compte vérifié pour commenter.",
+      "verifyEmail": "Vérifiez votre adresse e-mail pour laisser un commentaire.",
+      "signIn": "Se connecter"
+    },
+    "gallery": {
+      "badge": "INSTANTS DE L’ATELIER",
+      "title": "Galerie",
+      "previous": "Photos précédentes",
+      "next": "Photos suivantes",
+      "goTo": "Aller à la page {index} de la galerie",
+      "imageAlt": "{name} à {location}"
     },
     "footer": {
       "about": "Matériel de précision architecturale et accessoires physiques conçus pour les environnements de calcul les plus exigeants.",
@@ -101,7 +145,7 @@
       "conciergeEmail": "support@aurumtech.luxury",
       "conciergeHours": "Lun–Sam : 09h00 – 20h00 EST",
       "links": {
-        "stores": "Adresses Boutiques",
+        "stores": "Informations boutique",
         "support": "Support Client",
         "warranty": "Garantie & Entretien",
         "auth": "Vérification d'Authenticité",
@@ -125,14 +169,13 @@
     "goldEdition": "Édition Or",
     "lossless": "Audio Sans Perte 24-bit",
     "save": "-24% D'ÉCONOMIE",
-    "splitPayment": "Ou 4 paiements sans frais de",
     "selectMaterial": "Choisir la Finition & le Matériau",
     "materials": {
       "gold": "Or Titane",
       "slate": "Ardoise Spatiale",
       "ivory": "Ivoire Céramique"
     },
-    "specsTitle": "Spécifications Architecturales",
+    "specsTitle": "Détails",
     "specs": {
       "chambers": "Chambres Acoustiques Usinées Or 24K",
       "driver": "Transducteurs 50mm Revêtus de Béryllium",
@@ -165,12 +208,10 @@
     "wishlist": "Ajouter aux favoris",
     "skuLabel": "SKU",
     "badgeFeatured": "SÉLECTION CURATÉE",
-    "badgeDetail": "MATÉRIEL DE PRÉCISION",
     "reviewsUnavailable": "Aucune évaluation pour l'instant",
     "soldCount": "{count} vendus",
     "ratingLabel": "Note {rating} sur 5",
     "discountPercent": "ÉCONOMIE DE {percent} %",
-    "monthlyPayment": "{amount}/mois",
     "selectOption": "Choisir une option",
     "noOptions": "Ce produit n'a aucune option configurable.",
     "variantUnavailable": "Indisponible",
@@ -362,5 +403,11 @@
       "invalidPassword": "Le mot de passe doit contenir au moins 8 caractères.",
       "passwordMismatch": "Les mots de passe ne correspondent pas."
     }
+  },
+  "store": {
+    "locationTitle": "Nous trouver",
+    "openMap": "Ouvrir dans Google Maps",
+    "noMap": "L'emplacement sur la carte n'est pas encore disponible.",
+    "mapAlt": "Carte de {name}"
   }
 }

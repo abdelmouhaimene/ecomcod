@@ -55,6 +55,7 @@ describe('OffersService', () => {
     let productRepo: { find: ReturnType<typeof vi.fn> };
     let manager: Record<string, ReturnType<typeof vi.fn>>;
     let invalidate: ReturnType<typeof vi.fn>;
+    let qb: Record<string, ReturnType<typeof vi.fn>>;
 
     beforeEach(async () => {
         invalidate = vi.fn(async () => undefined);
@@ -73,7 +74,7 @@ describe('OffersService', () => {
             packItems: [],
             ...dates,
         };
-        const qb = {
+        qb = {
             leftJoinAndSelect: vi.fn(() => qb),
             where: vi.fn(() => qb),
             andWhere: vi.fn(() => qb),
@@ -138,9 +139,47 @@ describe('OffersService', () => {
         expect(result.singleRule).not.toHaveProperty('skuId');
     });
 
-    it('returns active offers from the cache loader', async () => {
+    it('filters active offers by the manual flag and the date window', async () => {
         await expect(service.findActive()).resolves.toHaveLength(1);
         expect(repo.createQueryBuilder).toHaveBeenCalled();
+        expect(qb.where).toHaveBeenCalledWith('offer.isActive = :active', { active: true });
+        expect(qb.andWhere).toHaveBeenCalledWith(
+            '(offer.startsAt IS NULL OR offer.startsAt <= :now)',
+            expect.objectContaining({ now: expect.any(Date) }),
+        );
+        expect(qb.andWhere).toHaveBeenCalledWith(
+            '(offer.endsAt IS NULL OR offer.endsAt >= :now)',
+            expect.objectContaining({ now: expect.any(Date) }),
+        );
+    });
+
+    it('exposes a free-shipping attribute derived from the rule mode', () => {
+        const base = {
+            id: 'offer-shipping',
+            name: 'Free shipping',
+            type: 'SINGLE_PRODUCT',
+            isActive: true,
+            startsAt: null,
+            endsAt: null,
+            packPrice: null,
+            packItems: [],
+            ...dates,
+        } as unknown as Offer;
+        const withRule = (mode: 'BUY_X_GET_Y_FREE' | 'BUY_X_GET_FREE_SHIPPING') => ({
+            ...base,
+            singleRule: {
+                id: 'rule-1',
+                offerId: base.id,
+                productId,
+                mode,
+                buyQuantity: mode === 'BUY_X_GET_Y_FREE' ? 2 : 1,
+                freeQuantity: mode === 'BUY_X_GET_Y_FREE' ? 1 : null,
+                ...dates,
+            } as unknown as OfferSingleRule,
+        });
+
+        expect(service.toPublic(withRule('BUY_X_GET_FREE_SHIPPING')).freeShipping).toBe(true);
+        expect(service.toPublic(withRule('BUY_X_GET_Y_FREE')).freeShipping).toBe(false);
     });
 
     it('creates a single-product offer with its rule', async () => {

@@ -15,6 +15,9 @@ import { ProductsModule } from './products/products.module.js';
 import { StockModule } from './stock/stock.module.js';
 import { OffersModule } from './offers/offers.module.js';
 import { OrdersModule } from './orders/orders.module.js';
+import { CommentsModule } from './comments/comments.module.js';
+import { GalleryModule } from './gallery/gallery.module.js';
+import { StoreModule } from './store/store.module.js';
 
 @Module({
   imports: [
@@ -32,6 +35,9 @@ import { OrdersModule } from './orders/orders.module.js';
     StockModule,
     OffersModule,
     OrdersModule,
+    CommentsModule,
+    GalleryModule,
+    StoreModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,6 +6,7 @@ import { AdminGuard } from '../admins/guards/admin.guard.js';
 import { SessionModule } from '../auth/shared/session.module.js';
 import { ProductCategory } from '../products/entities/product-category.entity.js';
 import { CategoriesController } from './categories.controller.js';
+import { PublicCategoriesController } from './public-categories.controller.js';
 import { CategoriesService } from './categories.service.js';
 import { Category } from './entities/category.entity.js';
 
@@ -14,7 +15,7 @@ import { Category } from './entities/category.entity.js';
     TypeOrmModule.forFeature([Category, ProductCategory, Admin]),
     forwardRef(() => SessionModule),
   ],
-  controllers: [CategoriesController],
+  controllers: [CategoriesController, PublicCategoriesController],
   providers: [CategoriesService, AdminsService, AdminGuard],
   exports: [CategoriesService],
 })

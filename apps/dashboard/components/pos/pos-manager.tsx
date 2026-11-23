@@ -210,7 +210,7 @@ export function PosManager(): React.JSX.Element {
     const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
     const numberFormatter = new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: 'USD',
+        currency: 'DZD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });

@@ -66,6 +66,7 @@ export class OffersService {
             isActive: offer.isActive,
             startsAt: offer.startsAt ?? null,
             endsAt: offer.endsAt ?? null,
+            freeShipping: offer.singleRule?.mode === 'BUY_X_GET_FREE_SHIPPING',
             packPrice: offer.packPrice ?? null,
             singleRule,
             packItems,
@@ -83,19 +84,19 @@ export class OffersService {
     }
 
     async findActive(): Promise<PublicOfferWithDates[]> {
-        return this.cache.getOrSet(CACHE_PREFIXES.offersActive, 30, async () => {
-            const now = new Date();
-            const offers = await this.repo
-                .createQueryBuilder('offer')
-                .leftJoinAndSelect('offer.singleRule', 'singleRule')
-                .leftJoinAndSelect('offer.packItems', 'packItem')
-                .where('offer.isActive = :active', { active: true })
-                .andWhere('(offer.startsAt IS NULL OR offer.startsAt <= :now)', { now })
-                .andWhere('(offer.endsAt IS NULL OR offer.endsAt >= :now)', { now })
-                .orderBy('offer.createdAt', 'DESC')
-                .getMany();
-            return offers.map((offer) => this.toPublic(offer));
-        });
+        // Deliberately uncached: an offer must disappear from the storefront
+        // the moment its window closes, without waiting for a TTL to expire.
+        const now = new Date();
+        const offers = await this.repo
+            .createQueryBuilder('offer')
+            .leftJoinAndSelect('offer.singleRule', 'singleRule')
+            .leftJoinAndSelect('offer.packItems', 'packItem')
+            .where('offer.isActive = :active', { active: true })
+            .andWhere('(offer.startsAt IS NULL OR offer.startsAt <= :now)', { now })
+            .andWhere('(offer.endsAt IS NULL OR offer.endsAt >= :now)', { now })
+            .orderBy('offer.createdAt', 'DESC')
+            .getMany();
+        return offers.map((offer) => this.toPublic(offer));
     }
 
     async findOne(id: string): Promise<PublicOfferWithDates> {

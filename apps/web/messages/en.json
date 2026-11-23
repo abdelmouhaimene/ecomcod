@@ -2,7 +2,7 @@
   "common": {
     "brandName": "AURELIA TECH",
     "brandSubtitle": "PRECISION ATELIER",
-    "currency": "$",
+    "currency": "DZD",
     "search": "Search premium tech...",
     "close": "Close",
     "back": "Back",
@@ -29,7 +29,7 @@
     "featuredProduct": "Aura Pro Studio"
   },
   "home": {
-    "curatedDrops": "Curated Drops",
+    "curatedDrops": "Limited offers",
     "exclusiveOffer": "25% OFF EXCLUSIVE",
     "edition01": "EDITION 01 OF 150",
     "acousticMastery": "Acoustic Mastery",
@@ -42,9 +42,11 @@
     "watchDesc": "Sapphire Crystal Lens",
     "dockTitle": "MagCharge Desk Dock",
     "dockDesc": "Dual 25W Qi2 Pad",
-    "hardwareCatalog": "Hardware Catalog",
-    "curatedSegments": "Curated Segments",
+    "hardwareCatalog": "Categories",
+    "curatedSegments": "Browse various products",
     "allSpecs": "All Specs",
+    "categoriesLoading": "Loading categories…",
+    "categoriesEmpty": "No categories available.",
     "categories": {
       "audio": "Audio & Hi-Fi",
       "wearables": "Wearables",
@@ -53,13 +55,33 @@
       "optics": "Optics",
       "cases": "Bespoke Cases"
     },
-    "mechanicalRefinement": "Mechanical Refinement",
-    "featuredInnovations": "Featured Innovations",
-    "filterTags": {
-      "all": "All Units",
-      "trending": "Trending",
-      "audio": "Audio Hi-Res",
-      "wearables": "Wearables"
+    "offers": {
+      "noEndDate": "No end date",
+      "ended": "Offer ended",
+      "timeLeft": "{days}d {hours}h {minutes}m {seconds}s",
+      "save": "Save {amount}",
+      "shippingIncluded": "Free shipping included",
+      "viewDetails": "View details",
+      "hideDetails": "Hide details",
+      "included": "What's included",
+      "freeUnits": "{count} free",
+      "viewProduct": "View product",
+      "previous": "Previous offer",
+      "next": "Next offer",
+      "goTo": "Go to offer {index}",
+      "effectivePrice": "Effective price per item",
+      "regularPrice": "Price per item",
+      "payFor": "Pay for {buy} of {total} — {amount}",
+      "packPrice": "Pack price",
+      "packNote": "{count} items in this pack",
+      "badgeSingle": "Limited offer",
+      "badgePack": "Bundle deal",
+      "titleBuyGetOne": "Buy {buy} ({product}) get the {ordinal} for free",
+      "titleBuyGetMany": "Buy {buy} ({product}) get {free} more for free",
+      "titleFreeShipping": "Buy {buy} ({product}) and shipping is on us",
+      "titlePack": "{count}-item pack with {product}",
+      "empty": "No limited offers right now. Check back soon.",
+      "loading": "Loading limited offers…"
     },
     "products": {
       "soundbar": {
@@ -87,10 +109,32 @@
       "badge": "Patron Verifications",
       "title": "Client Appraisals",
       "collector": "VERIFIED COLLECTOR",
-      "location": "NYC Boutique",
-      "quote": "“The acoustic clarity and golden brushed aluminum finish exceed anything from standard retailers. Aurelia represents a masterclass in modern physical computing.”",
-      "author": "Julian Vance",
-      "role": "Senior Tech Editor & Collector"
+      "previous": "Previous comment",
+      "next": "Next comment",
+      "goTo": "Go to comment {index}",
+      "imageAlt": "{name} portrait",
+      "empty": "No comments yet. Be the first to share your experience.",
+      "loading": "Loading comments…",
+      "formTitle": "Share your experience",
+      "formDescription": "Only email-verified clients can leave a comment.",
+      "contentLabel": "Your comment",
+      "contentPlaceholder": "Tell us what you think…",
+      "ratingLabel": "Rating",
+      "submit": "Post comment",
+      "submitting": "Posting…",
+      "success": "Thank you — your comment has been posted.",
+      "error": "Unable to post your comment. Please try again.",
+      "verifiedOnly": "Sign in with a verified account to leave a comment.",
+      "verifyEmail": "Verify your email address to leave a comment.",
+      "signIn": "Sign in"
+    },
+    "gallery": {
+      "badge": "MOMENTS FROM THE ATELIER",
+      "title": "Gallery",
+      "previous": "Previous photos",
+      "next": "Next photos",
+      "goTo": "Go to gallery page {index}",
+      "imageAlt": "{name} in {location}"
     },
     "footer": {
       "about": "Architectural precision hardware and high-grade physical accoutrements crafted for discerning computational environments.",
@@ -101,7 +145,7 @@
       "conciergeEmail": "support@aurumtech.luxury",
       "conciergeHours": "Mon–Sat: 09:00 – 20:00 EST",
       "links": {
-        "stores": "Store Locations",
+        "stores": "Store Information",
         "support": "Customer Support",
         "warranty": "Warranty & Care",
         "auth": "Authenticity Verification",
@@ -125,14 +169,13 @@
     "goldEdition": "Gold Edition",
     "lossless": "Lossless Audio 24-bit",
     "save": "SAVE 24%",
-    "splitPayment": "Or 4 interest-free payments of",
     "selectMaterial": "Select Finish & Material",
     "materials": {
       "gold": "Titanium Gold",
       "slate": "Space Slate",
       "ivory": "Ceramic Ivory"
     },
-    "specsTitle": "Architectural Specifications",
+    "specsTitle": "Details",
     "specs": {
       "chambers": "Machined 24K Gold Acoustic Chambers",
       "driver": "50mm Beryllium-Coated Transducers",
@@ -165,12 +208,10 @@
     "wishlist": "Add to wishlist",
     "skuLabel": "SKU",
     "badgeFeatured": "CURATED PICK",
-    "badgeDetail": "PRECISION HARDWARE",
     "reviewsUnavailable": "No ratings yet",
     "soldCount": "{count} sold",
     "ratingLabel": "Rating {rating} out of 5",
     "discountPercent": "SAVE {percent}%",
-    "monthlyPayment": "{amount}/mo",
     "selectOption": "Select an option",
     "noOptions": "This product has no configurable options.",
     "variantUnavailable": "Unavailable",
@@ -362,5 +403,11 @@
       "invalidPassword": "Password must be at least 8 characters.",
       "passwordMismatch": "Passwords do not match."
     }
+  },
+  "store": {
+    "locationTitle": "Find us",
+    "openMap": "Open in Google Maps",
+    "noMap": "The map location is not available yet.",
+    "mapAlt": "Map showing {name}"
   }
 }

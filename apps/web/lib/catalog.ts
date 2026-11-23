@@ -11,8 +11,8 @@ export function resolveMediaUrl(url: string | null | undefined): string {
   return `${API_URL.replace(/\/+$/, '')}/${url.replace(/^\/+/, '')}`;
 }
 
-export function formatPrice(value: number, currency = '$'): string {
-  return `${currency}${value.toFixed(2)}`;
+export function formatPrice(value: number, currency = 'DZD'): string {
+  return `${currency} ${value.toFixed(2)}`;
 }
 
 export function slugify(value: string): string {

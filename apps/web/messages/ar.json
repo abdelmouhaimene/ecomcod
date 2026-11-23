@@ -2,7 +2,7 @@
   "common": {
     "brandName": "أوريليا تيك",
     "brandSubtitle": "ورشة الدقة الفاخرة",
-    "currency": "$",
+    "currency": "DZD",
     "search": "البحث في الأجهزة الفاخرة...",
     "close": "إغلاق",
     "back": "رجوع",
@@ -29,7 +29,7 @@
     "featuredProduct": "أورا برو ستوديو"
   },
   "home": {
-    "curatedDrops": "إصدارات مختارة",
+    "curatedDrops": "عروض محدودة",
     "exclusiveOffer": "خصم حصري 25%",
     "edition01": "الإصدار 01 من 150",
     "acousticMastery": "براعة صوتية",
@@ -42,9 +42,11 @@
     "watchDesc": "عدسة من كريستال الياقوت",
     "dockTitle": "قاعدة الشحن ماج تشارج",
     "dockDesc": "منصة شحن مزدوجة بقدرة 25 واط",
-    "hardwareCatalog": "دليل الأجهزة",
-    "curatedSegments": "فئات منتقاة",
+    "hardwareCatalog": "الفئات",
+    "curatedSegments": "تصفح منتجات متنوعة",
     "allSpecs": "جميع المواصفات",
+    "categoriesLoading": "جارٍ تحميل الفئات…",
+    "categoriesEmpty": "لا توجد فئات متاحة.",
     "categories": {
       "audio": "الصوتيات العالية الدقة",
       "wearables": "الأجهزة القابلة للارتداء",
@@ -53,13 +55,33 @@
       "optics": "البصريات",
       "cases": "الحوافظ الفاخرة"
     },
-    "mechanicalRefinement": "دقة ميكانيكية",
-    "featuredInnovations": "ابتكارات مميزة",
-    "filterTags": {
-      "all": "كافة الوحدات",
-      "trending": "الأكثر طلباً",
-      "audio": "صوتيات فائقة",
-      "wearables": "الأجهزة الملبوسة"
+    "offers": {
+      "noEndDate": "بدون تاريخ انتهاء",
+      "ended": "انتهى العرض",
+      "timeLeft": "{days} يوم {hours} ساعة {minutes} دقيقة {seconds} ثانية",
+      "save": "وفّر {amount}",
+      "shippingIncluded": "شحن مجاني مشمول",
+      "viewDetails": "عرض التفاصيل",
+      "hideDetails": "إخفاء التفاصيل",
+      "included": "ما يشمله العرض",
+      "freeUnits": "{count} مجاني",
+      "viewProduct": "عرض المنتج",
+      "previous": "العرض السابق",
+      "next": "العرض التالي",
+      "goTo": "الانتقال إلى العرض {index}",
+      "effectivePrice": "السعر الفعلي للقطعة",
+      "regularPrice": "سعر القطعة",
+      "payFor": "ادفع ثمن {buy} من {total} — {amount}",
+      "packPrice": "سعر الحزمة",
+      "packNote": "{count} قطع في هذه الحزمة",
+      "badgeSingle": "عرض محدود",
+      "badgePack": "عرض الحزمة",
+      "titleBuyGetOne": "اشترِ {buy} ({product}) واحصل على القطعة {ordinal} مجاناً",
+      "titleBuyGetMany": "اشترِ {buy} ({product}) واحصل على {free} إضافية مجاناً",
+      "titleFreeShipping": "اشترِ {buy} ({product}) والشحن علينا",
+      "titlePack": "حزمة من {count} قطع: {product}",
+      "empty": "لا توجد عروض محدودة حالياً. عد قريباً.",
+      "loading": "جارٍ تحميل العروض المحدودة…"
     },
     "products": {
       "soundbar": {
@@ -87,10 +109,32 @@
       "badge": "شهادات مقتنينا",
       "title": "تقييمات العملاء",
       "collector": "مقتني معتمد",
-      "location": "بوتيك نيويورك",
-      "quote": "«النقاء الصوتي وهيكل الألومنيوم الذهبي المصقول يفوق أي منتج تجاري آخر. تمثل أوريليا قمة الحوسبة المادية الفاخرة.»",
-      "author": "جوليان فانس",
-      "role": "رئيس تحرير التقنية وجامع مقتنيات"
+      "previous": "التعليق السابق",
+      "next": "التعليق التالي",
+      "goTo": "الانتقال إلى التعليق {index}",
+      "imageAlt": "صورة {name}",
+      "empty": "لا توجد تعليقات بعد. كن أول من يشارك رأيه.",
+      "loading": "جارٍ تحميل التعليقات…",
+      "formTitle": "شارك تجربتك",
+      "formDescription": "يمكن للعملاء الذين تم التحقق من بريدهم الإلكتروني فقط ترك تعليق.",
+      "contentLabel": "تعليقك",
+      "contentPlaceholder": "أخبرنا برأيك…",
+      "ratingLabel": "التقييم",
+      "submit": "نشر التعليق",
+      "submitting": "جارٍ النشر…",
+      "success": "شكراً لك — تم نشر تعليقك.",
+      "error": "تعذّر نشر تعليقك. يرجى المحاولة مرة أخرى.",
+      "verifiedOnly": "سجّل الدخول بحساب موثّق لترك تعليق.",
+      "verifyEmail": "وثّق بريدك الإلكتروني لترك تعليق.",
+      "signIn": "تسجيل الدخول"
+    },
+    "gallery": {
+      "badge": "لحظات من الورشة",
+      "title": "المعرض",
+      "previous": "الصور السابقة",
+      "next": "الصور التالية",
+      "goTo": "الانتقال إلى صفحة المعرض {index}",
+      "imageAlt": "{name} في {location}"
     },
     "footer": {
       "about": "أجهزة هندسية دقيقة ومقتنيات فيزيائية راقية صُممت لأكثر بيئات الحوسبة تطلباً.",
@@ -101,7 +145,7 @@
       "conciergeEmail": "support@aurumtech.luxury",
       "conciergeHours": "الإثنين–السبت: 09:00 – 20:00 بتوقيت نيويورك",
       "links": {
-        "stores": "فروع البوتيك",
+        "stores": "معلومات المتجر",
         "support": "دعم العملاء",
         "warranty": "الضمان والرعاية",
         "auth": "التحقق من الأصالة",
@@ -125,14 +169,13 @@
     "goldEdition": "الإصدار الذهبي",
     "lossless": "صوت نقي 24 بت",
     "save": "وفر 24%",
-    "splitPayment": "أو 4 دفعات بدون فوائد بقيمة",
     "selectMaterial": "اختر الخامة واللمسة النهائية",
     "materials": {
       "gold": "ذهب التيتانيوم",
       "slate": "إردواز فضائي",
       "ivory": "عاج سيراميكي"
     },
-    "specsTitle": "المواصفات الهندسية",
+    "specsTitle": "التفاصيل",
     "specs": {
       "chambers": "غرف صوتية مصنعة من ذهب 24 قيراط",
       "driver": "محركات صوتية 50 ملم مغلفة بالبيريليوم",
@@ -165,12 +208,10 @@
     "wishlist": "إضافة إلى المفضلة",
     "skuLabel": "رمز SKU",
     "badgeFeatured": "اختيار مُنتقى",
-    "badgeDetail": "عتاد دقيق الصنع",
     "reviewsUnavailable": "لا توجد تقييمات بعد",
     "soldCount": "تم بيع {count}",
     "ratingLabel": "التقييم {rating} من 5",
     "discountPercent": "وفّر {percent}%",
-    "monthlyPayment": "{amount}/شهرياً",
     "selectOption": "اختر خياراً",
     "noOptions": "لا توجد خيارات قابلة للتخصيص لهذا المنتج.",
     "variantUnavailable": "غير متاح",
@@ -362,5 +403,11 @@
       "invalidPassword": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل.",
       "passwordMismatch": "كلمتا المرور غير متطابقتين."
     }
+  },
+  "store": {
+    "locationTitle": "اعثر علينا",
+    "openMap": "الفتح في خرائط Google",
+    "noMap": "موقع الخريطة غير متاح بعد.",
+    "mapAlt": "خريطة توضح موقع {name}"
   }
 }

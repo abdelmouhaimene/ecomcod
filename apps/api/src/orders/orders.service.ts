@@ -341,7 +341,7 @@ export class OrdersService {
                 }
                 if (rule.mode === 'BUY_X_GET_Y_FREE') {
                     addRequired(skuId, (rule.freeQuantity ?? 0) * times);
-                } else {
+                } else if (rule.mode === 'BUY_X_GET_FREE_SHIPPING') {
                     freeShipping = true;
                 }
                 continue;

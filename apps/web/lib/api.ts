@@ -1,10 +1,15 @@
 import type {
   ApiErrorResponse,
+  CreateCommentPayload,
+  GalleryState,
   OrderPayload,
+  PublicComment,
+  PublicCategory,
   PublicFamily,
   PublicOffer,
   PublicOrder,
   PublicProduct,
+  PublicStoreInfo,
 } from '@repo/types';
 
 /**
@@ -78,9 +83,15 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
 /** Typed storefront calls. All paths are relative to `API_URL`. */
 export const catalogApi = {
   listProducts: () => apiFetch<PublicProduct[]>('/v1/products'),
+  listCategories: () => apiFetch<PublicCategory[]>('/v1/categories'),
   getProduct: (id: string) =>
     apiFetch<PublicProduct>(`/v1/products/${encodeURIComponent(id)}`),
   listActiveOffers: () => apiFetch<PublicOffer[]>('/v1/offers/active'),
+  listComments: () => apiFetch<PublicComment[]>('/v1/comments'),
+  getGallery: () => apiFetch<GalleryState>('/v1/gallery'),
+  getStore: () => apiFetch<PublicStoreInfo>('/v1/store'),
+  createComment: (payload: CreateCommentPayload) =>
+    apiFetch<PublicComment>('/v1/comments', { method: 'POST', body: payload }),
   listFamilies: () => apiFetch<PublicFamily[]>('/v1/families'),
   createOrder: (payload: OrderPayload) =>
     apiFetch<PublicOrder>('/v1/orders', { method: 'POST', body: payload }),

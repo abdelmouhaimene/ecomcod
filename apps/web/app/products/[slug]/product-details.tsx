@@ -394,12 +394,6 @@ export default function ProductDetails() {
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
                 {t('badgeFeatured')}
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-caps text-label-caps">
-                <span className="material-symbols-outlined text-[12px] text-primary">
-                  graphic_eq
-                </span>
-                {t('badgeDetail')}
-              </span>
             </div>
 
             <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
@@ -520,13 +514,6 @@ export default function ProductDetails() {
                   </span>
                 </>
               )}
-            </div>
-            <div className="flex items-center gap-1.5 text-secondary font-body-sm text-body-sm">
-              <span className="material-symbols-outlined text-[16px] text-primary">payments</span>
-              <span>{t('splitPayment')}</span>
-              <strong className="font-label-numeric text-label-numeric text-on-surface font-bold">
-                {t('monthlyPayment', { amount: formatPrice(product.price / 4, currency) })}
-              </strong>
             </div>
           </div>
 

@@ -8,6 +8,8 @@ import { LanguageSelector } from '../language-selector';
 import { AccountMenu } from './account-menu';
 import { useStore } from '../../context/store-context';
 import { useAuth } from '../../context/auth-context';
+import { useStoreInfo } from '../../context/store-info-context';
+import { resolveMediaUrl } from '../../lib/catalog';
 
 export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
   const t = useTranslations('nav');
@@ -15,6 +17,8 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
   const tAuth = useTranslations('auth');
   const { totalCount } = useStore();
   const { user, logout } = useAuth();
+  const { store } = useStoreInfo();
+  const contactLine = [store?.address, store?.phones[0]?.number].filter(Boolean).join(' • ');
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -44,9 +48,17 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
           <div className="flex flex-col items-center">
             <Link
               href="/"
-              className="font-label-caps text-label-caps tracking-widest text-primary dark:text-inverse-primary uppercase font-bold hover:opacity-90 transition-opacity"
+              className="flex items-center font-label-caps text-label-caps tracking-widest text-primary dark:text-inverse-primary uppercase font-bold hover:opacity-90 transition-opacity"
             >
-              {tCommon('brandName')}
+              {store?.logo ? (
+                <img
+                  src={resolveMediaUrl(store.logo)}
+                  alt={store.name}
+                  className="max-h-8 max-w-[150px] object-contain"
+                />
+              ) : (
+                <span>{store?.name || tCommon('brandName')}</span>
+              )}
             </Link>
             <span className="font-label-caps text-[9px] tracking-[0.22em] text-on-surface-variant/80 -mt-0.5">
               {tCommon('brandSubtitle')}
@@ -121,7 +133,7 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
               <div className="flex items-center justify-between pb-4 border-b border-outline-variant/20 mb-6">
                 <div>
                   <h3 className="font-label-caps text-label-caps tracking-widest text-primary uppercase font-bold">
-                    {tCommon('brandName')}
+                    {store?.name || tCommon('brandName')}
                   </h3>
                   <p className="font-label-caps text-[9px] text-on-surface-variant tracking-wider">
                     {tCommon('brandSubtitle')}
@@ -217,9 +229,9 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                 </span>
                 <ThemeToggle />
               </div>
-              <p className="font-body-sm text-[11px] text-outline">
-                540 Madison Ave, New York • +1 800 450 GOLD
-              </p>
+              {contactLine ? (
+                <p className="font-body-sm text-[11px] text-outline">{contactLine}</p>
+              ) : null}
             </div>
           </div>
         </div>
