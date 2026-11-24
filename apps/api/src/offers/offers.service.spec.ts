@@ -116,6 +116,7 @@ describe('OffersService', () => {
                     useValue: {
                         getOrSet: vi.fn(async (_key: string, _ttl: number, loader: () => Promise<unknown>) => loader()),
                         invalidate,
+                        invalidatePrefix: vi.fn(async () => undefined),
                     },
                 },
                 {

@@ -113,7 +113,9 @@ export class FamiliesService {
     }
 
     private async invalidate(): Promise<void> {
-        await this.cache.invalidate(CACHE_PREFIXES.families, CACHE_PREFIXES.catalog);
+        await this.cache.invalidate(CACHE_PREFIXES.families);
+        // Catalog keys embed query parameters; clear every filtered page.
+        await this.cache.invalidatePrefix(CACHE_PREFIXES.catalog);
         // Cached products embed their families, so clear those too.
         await this.cache.invalidatePrefix(CACHE_PREFIXES.product);
     }

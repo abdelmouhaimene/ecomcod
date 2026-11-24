@@ -195,7 +195,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-background text-on-surface antialiased min-h-screen pb-36">
-      <header className="sticky top-0 z-50 bg-surface/85 backdrop-blur-md border-b border-outline-variant/30">
+      <header className="sticky top-0 bg-surface/85 backdrop-blur-md border-b border-outline-variant/30">
         <div className="max-w-md mx-auto px-margin py-3 flex items-center justify-between">
           <Link
             href="/"

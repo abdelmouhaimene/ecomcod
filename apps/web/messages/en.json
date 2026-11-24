@@ -17,6 +17,7 @@
   "nav": {
     "home": "Home",
     "categories": "Categories",
+    "products": "Products",
     "cart": "Cart",
     "account": "Account",
     "menu": "Menu",
@@ -44,6 +45,7 @@
     "hardwareCatalog": "Categories",
     "curatedSegments": "Browse various products",
     "allSpecs": "All Specs",
+    "exploreAll": "Explore all",
     "categoriesLoading": "Loading categories…",
     "categoriesEmpty": "No categories available.",
     "categories": {
@@ -121,6 +123,7 @@
       "contentLabel": "Your comment",
       "contentPlaceholder": "Tell us what you think…",
       "ratingLabel": "Rating",
+      "ratingStar": "Rate {count} stars",
       "submit": "Post comment",
       "submitting": "Posting…",
       "success": "Thank you — your comment has been posted.",
@@ -232,6 +235,23 @@
       "design": "Design",
       "other": "Option"
     }
+  },
+  "products": {
+    "eyebrow": "FULL CATALOG",
+    "title": "Explore the collection",
+    "subtitle": "Every piece in the atelier, nine at a time.",
+    "searchLabel": "Search products",
+    "searchPlaceholder": "Search by name, reference or category…",
+    "categoryLabel": "Filter by category",
+    "allCategories": "All categories",
+    "search": "Search",
+    "showing": "Showing {first}–{last} of {total}",
+    "empty": "No products match your search.",
+    "clear": "Clear filters",
+    "paginationLabel": "Catalog pages",
+    "previous": "Previous page",
+    "next": "Next page",
+    "goTo": "Go to page {page}"
   },
   "offer": {
     "badgeSingle": "Limited offer",

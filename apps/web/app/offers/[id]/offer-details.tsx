@@ -322,7 +322,7 @@ export default function OfferDetails() {
       return;
     }
     setLoading(true);
-    void Promise.allSettled([catalogApi.getOffer(id), catalogApi.listProducts()]).then(
+    void Promise.allSettled([catalogApi.getOffer(id), catalogApi.listAllProducts()]).then(
       ([offerResult, productsResult]) => {
         if (cancelled) return;
         setOffer(offerResult.status === 'fulfilled' ? offerResult.value : null);

@@ -191,6 +191,7 @@ describe('StockEntriesService', () => {
                 { provide: CacheService, useValue: {
                     getOrSet: vi.fn(async (_key: string, _ttl: number, loader: () => Promise<unknown>) => loader()),
                     invalidate: cacheInvalidate,
+                    invalidatePrefix: vi.fn(async () => undefined),
                 } },
                 {
                     provide: DataSource,

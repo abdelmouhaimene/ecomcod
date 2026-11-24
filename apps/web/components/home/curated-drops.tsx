@@ -352,7 +352,7 @@ export function CuratedDrops() {
 
   React.useEffect(() => {
     let cancelled = false;
-    void Promise.allSettled([catalogApi.listActiveOffers(), catalogApi.listProducts()]).then(
+    void Promise.allSettled([catalogApi.listActiveOffers(), catalogApi.listAllProducts()]).then(
       ([offersResult, productsResult]) => {
         if (cancelled) return;
         setOffers(offersResult.status === 'fulfilled' ? offersResult.value : []);

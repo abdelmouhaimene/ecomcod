@@ -418,14 +418,48 @@ describe('Commerce (e2e)', () => {
         }
     });
 
-    it('serves public products with SKUs and no variant price', async () => {
-        const products = await request(app.getHttpServer()).get('/v1/products').expect(200);
-        const product = products.body.find((item: { id: string }) => item.id === productAId);
+    it('serves paginated public products with SKUs and no variant price', async () => {
+        const response = await request(app.getHttpServer()).get('/v1/products').expect(200);
+        expect(response.body).toMatchObject({
+            page: 1,
+            limit: 9,
+            total: expect.any(Number),
+            totalPages: expect.any(Number),
+        });
+        const product = response.body.items.find((item: { id: string }) => item.id === productAId);
         expect(product).toBeTruthy();
         expect(product.skus[0]).toMatchObject({ productId: productAId, stockQuantity: 12 });
         expect(product.skus[0]).not.toHaveProperty('price');
 
         await request(app.getHttpServer()).get(`/v1/products/${productAId}`).expect(200);
+    });
+
+    it('paginates, searches and filters public products through query strings', async () => {
+        const first = await request(app.getHttpServer())
+            .get('/v1/products?page=1&limit=1')
+            .expect(200);
+        expect(first.body.items).toHaveLength(1);
+        expect(first.body).toMatchObject({ page: 1, limit: 1, totalPages: first.body.total });
+
+        const second = await request(app.getHttpServer())
+            .get('/v1/products?page=2&limit=1')
+            .expect(200);
+        expect(second.body.page).toBe(2);
+        expect(second.body.items[0]?.id).not.toBe(first.body.items[0]?.id);
+
+        const filtered = await request(app.getHttpServer())
+            .get(`/v1/products?categoryId=${categoryId}&limit=9`)
+            .expect(200);
+        expect(filtered.body.items.length).toBeGreaterThan(0);
+        expect(filtered.body.items.every((item: { categories: { id: string }[] }) =>
+            item.categories.some((category) => category.id === categoryId))).toBe(true);
+
+        const searched = await request(app.getHttpServer())
+            .get(`/v1/products?q=${encodeURIComponent(productARef)}`)
+            .expect(200);
+        expect(searched.body.items.some((item: { id: string }) => item.id === productAId)).toBe(true);
+
+        await request(app.getHttpServer()).get('/v1/products?page=0').expect(400);
     });
 
     it('serves public categories with their optional icon', async () => {

@@ -5,10 +5,12 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { plainToInstance } from 'class-transformer';
 import { DataSource } from 'typeorm';
 import { CacheService } from '../cache/cache.service.js';
 import { Category } from '../categories/entities/category.entity.js';
 import { Family } from '../families/entities/family.entity.js';
+import { FindProductsDto } from './dto/find-products.dto.js';
 import { ProductDto } from './dto/product.dto.js';
 import { ProductsService } from './products.service.js';
 import { Product } from './entities/product.entity.js';
@@ -149,7 +151,17 @@ describe('ProductsService', () => {
   let dataSource: { transaction: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    const queryBuilder = {
+      leftJoinAndSelect: vi.fn(() => queryBuilder),
+      andWhere: vi.fn(() => queryBuilder),
+      orderBy: vi.fn(() => queryBuilder),
+      addOrderBy: vi.fn(() => queryBuilder),
+      skip: vi.fn(() => queryBuilder),
+      take: vi.fn(() => queryBuilder),
+      getManyAndCount: vi.fn(async () => [[product], 1]),
+    };
     repo = {
+      createQueryBuilder: vi.fn(() => queryBuilder),
       find: vi.fn(async () => [product]),
       findOne: vi.fn(async () => product),
       findOneBy: vi.fn(async (where: Record<string, string>) =>
@@ -186,6 +198,7 @@ describe('ProductsService', () => {
           useValue: {
             getOrSet: vi.fn(async (_key: string, _ttl: number, loader: () => Promise<unknown>) => loader()),
             invalidate: vi.fn(async () => undefined),
+            invalidatePrefix: vi.fn(async () => undefined),
           },
         },
         { provide: DataSource, useValue: dataSource },
@@ -242,6 +255,49 @@ describe('ProductsService', () => {
     expect(result.variants[0].values[0]).not.toHaveProperty('price');
     expect(result.skus[0]).not.toHaveProperty('price');
     expect(result.subtitle).toBe('  Over ear  ');
+  });
+
+  it('paginates in the query builder and applies URL filters', async () => {
+    const categoryId = '11111111-1111-4111-8111-111111111111';
+    const familyId = '22222222-2222-4222-8222-222222222222';
+    const query = plainToInstance(FindProductsDto, {
+      page: '2',
+      limit: '9',
+      q: ' audio ',
+      categoryId,
+      familyId,
+    });
+
+    const result = await service.findPaginated(query);
+
+    expect(result).toMatchObject({
+      total: 1,
+      page: 2,
+      limit: 9,
+      totalPages: 1,
+      items: [{ id: product.id }],
+    });
+    const builder = repo.createQueryBuilder.mock.results[0].value as {
+      skip: ReturnType<typeof vi.fn>;
+      take: ReturnType<typeof vi.fn>;
+      andWhere: ReturnType<typeof vi.fn>;
+      getManyAndCount: ReturnType<typeof vi.fn>;
+    };
+    expect(builder.skip).toHaveBeenCalledWith(9);
+    expect(builder.take).toHaveBeenCalledWith(9);
+    expect(builder.andWhere).toHaveBeenCalledWith(
+      expect.stringContaining('product.name ILIKE :q'),
+      { q: '%audio%' },
+    );
+    expect(builder.andWhere).toHaveBeenCalledWith(
+      expect.stringContaining('pc."categoryId" = :categoryId'),
+      { categoryId },
+    );
+    expect(builder.andWhere).toHaveBeenCalledWith(
+      expect.stringContaining('pf."familyId" = :familyId'),
+      { familyId },
+    );
+    expect(builder.getManyAndCount).toHaveBeenCalledTimes(1);
   });
 
   it('rejects payloads without exactly one main image', async () => {

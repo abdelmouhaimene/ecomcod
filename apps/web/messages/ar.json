@@ -17,6 +17,7 @@
   "nav": {
     "home": "الرئيسية",
     "categories": "الفئات",
+    "products": "المنتجات",
     "cart": "الحقيبة",
     "account": "الحساب",
     "menu": "القائمة",
@@ -44,6 +45,7 @@
     "hardwareCatalog": "الفئات",
     "curatedSegments": "تصفح منتجات متنوعة",
     "allSpecs": "جميع المواصفات",
+    "exploreAll": "استكشف الكل",
     "categoriesLoading": "جارٍ تحميل الفئات…",
     "categoriesEmpty": "لا توجد فئات متاحة.",
     "categories": {
@@ -121,6 +123,7 @@
       "contentLabel": "تعليقك",
       "contentPlaceholder": "أخبرنا برأيك…",
       "ratingLabel": "التقييم",
+      "ratingStar": "قيّم بـ {count} نجوم",
       "submit": "نشر التعليق",
       "submitting": "جارٍ النشر…",
       "success": "شكراً لك — تم نشر تعليقك.",
@@ -232,6 +235,23 @@
       "design": "التصميم",
       "other": "خيار"
     }
+  },
+  "products": {
+    "eyebrow": "الكتالوج الكامل",
+    "title": "استكشف المجموعة",
+    "subtitle": "كل قطع الورشة، تسع في كل مرة.",
+    "searchLabel": "ابحث في المنتجات",
+    "searchPlaceholder": "ابحث بالاسم أو المرجع أو الفئة…",
+    "categoryLabel": "تصفية حسب الفئة",
+    "allCategories": "كل الفئات",
+    "search": "بحث",
+    "showing": "عرض {first}–{last} من {total}",
+    "empty": "لا توجد منتجات تطابق بحثك.",
+    "clear": "مسح عوامل التصفية",
+    "paginationLabel": "صفحات الكتالوج",
+    "previous": "الصفحة السابقة",
+    "next": "الصفحة التالية",
+    "goTo": "الانتقال إلى الصفحة {page}"
   },
   "offer": {
     "badgeSingle": "عرض محدود",

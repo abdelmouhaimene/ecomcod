@@ -220,7 +220,8 @@ export class OffersService {
     }
 
     private async invalidate(): Promise<void> {
-        await this.cache.invalidate(CACHE_PREFIXES.offersActive, CACHE_PREFIXES.catalog);
+        await this.cache.invalidate(CACHE_PREFIXES.offersActive);
+        await this.cache.invalidatePrefix(CACHE_PREFIXES.catalog);
     }
 }
 

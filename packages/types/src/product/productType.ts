@@ -98,6 +98,27 @@ export interface PublicProductSku<TDate = string> {
     updatedAt: TDate;
 }
 
+/** Query-string filters accepted by the public paginated catalog. */
+export interface ProductListQuery {
+    /** 1-based page number. */
+    page?: number;
+    /** Products per page (9 for the storefront). */
+    limit?: number;
+    /** Case-insensitive search over product and category/family names. */
+    q?: string;
+    categoryId?: string;
+    familyId?: string;
+}
+
+/** Envelope returned by `GET /v1/products`. */
+export interface PaginatedProducts<TDate = string> {
+    items: PublicProduct<TDate>[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 export interface PublicProduct<TDate = string> {
     id: string;
     ref: string;

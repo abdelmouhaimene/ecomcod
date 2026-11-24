@@ -444,8 +444,8 @@ export class StockEntriesService {
     }
 
     private async invalidate(skuIds: string[], productIds: string[]): Promise<void> {
+        await this.cache.invalidatePrefix(CACHE_PREFIXES.catalog);
         await this.cache.invalidate(
-            CACHE_PREFIXES.catalog,
             CACHE_PREFIXES.families,
             CACHE_PREFIXES.offersActive,
             CACHE_PREFIXES.stockAvailability,

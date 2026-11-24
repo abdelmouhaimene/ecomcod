@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AdminRole } from '@repo/types';
 import { ADMIN_ROLES_KEY } from '../admins/decorators/roles.decorator.js';
 import { AdminGuard } from '../admins/guards/admin.guard.js';
+import { FindProductsDto } from './dto/find-products.dto.js';
+import { PublicProductsController } from './public-products.controller.js';
 import { ProductsController } from './products.controller.js';
 import { ProductsService } from './products.service.js';
 
@@ -51,5 +53,33 @@ describe('ProductsController', () => {
     }
     expect(Reflect.getMetadata(ADMIN_ROLES_KEY, controller.findAll)).toBeUndefined();
     expect(Reflect.getMetadata(ADMIN_ROLES_KEY, controller.findOne)).toBeUndefined();
+  });
+});
+
+describe('PublicProductsController', () => {
+  let controller: PublicProductsController;
+  const envelope = { items: [], total: 0, page: 1, limit: 9, totalPages: 0 };
+  const service = {
+    findPaginated: vi.fn(async () => envelope),
+    findOne: vi.fn(async () => ({ id: 'product-1' })),
+  };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [PublicProductsController],
+      providers: [{ provide: ProductsService, useValue: service }],
+    }).compile();
+    controller = module.get<PublicProductsController>(PublicProductsController);
+  });
+
+  it('forwards query parameters to the paginated catalog service', async () => {
+    const query = { page: 2, limit: 9, q: 'audio' } as FindProductsDto;
+    await expect(controller.findAll(query)).resolves.toBe(envelope);
+    expect(service.findPaginated).toHaveBeenCalledWith(query);
+  });
+
+  it('keeps both public routes free of admin role requirements', () => {
+    expect(Reflect.getMetadata(ADMIN_ROLES_KEY, controller.findAll)).toBeUndefined();
   });
 });

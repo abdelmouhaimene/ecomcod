@@ -176,7 +176,11 @@ describe('OrdersService', () => {
                 { provide: getRepositoryToken(StockMovement), useValue: {} },
                 {
                     provide: CacheService,
-                    useValue: { invalidate, getOrSet: vi.fn() },
+                    useValue: {
+                        invalidate,
+                        invalidatePrefix: vi.fn(async () => undefined),
+                        getOrSet: vi.fn(),
+                    },
                 },
                 { provide: LockService, useValue: { acquire } },
                 {

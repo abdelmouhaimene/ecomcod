@@ -7,11 +7,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import {
     CACHE_PREFIXES,
+    CACHE_TTLS_SECONDS,
+    catalogListKey,
     productKey,
     skuKey,
 } from '../cache/cache-keys.js';
 import { CacheService } from '../cache/cache.service.js';
 import type {
+    PaginatedProducts,
     PublicCategory,
     PublicFamily,
     PublicProduct,
@@ -28,6 +31,7 @@ import {
 } from 'typeorm';
 import { Category } from '../categories/entities/category.entity.js';
 import { Family } from '../families/entities/family.entity.js';
+import { FindProductsDto } from './dto/find-products.dto.js';
 import { ProductDto } from './dto/product.dto.js';
 import { ProductCategory } from './entities/product-category.entity.js';
 import { ProductImage } from './entities/product-image.entity.js';
@@ -190,7 +194,70 @@ export class ProductsService {
             });
             return products.map((product) => this.toPublic(product));
         };
-        return this.cache.getOrSet(CACHE_PREFIXES.catalog, 60, load);
+        return this.cache.getOrSet(CACHE_PREFIXES.catalog, CACHE_TTLS_SECONDS.catalog, load);
+    }
+
+    /**
+     * Public catalog with database-level filtering and pagination. Joins carry
+     * the full nested product payload; `getManyAndCount` de-duplicates roots
+     * before applying skip/take, so one product never occupies several slots.
+     */
+    async findPaginated(dto: FindProductsDto): Promise<PaginatedProducts<Date>> {
+        const page = dto.page ?? 1;
+        const limit = dto.limit ?? 9;
+        const key = catalogListKey({ ...dto, page, limit });
+
+        const load = async (): Promise<PaginatedProducts<Date>> => {
+            const query = this.repo.createQueryBuilder('product')
+                .leftJoinAndSelect('product.productCategories', 'productCategories')
+                .leftJoinAndSelect('productCategories.category', 'category')
+                .leftJoinAndSelect('product.families', 'family')
+                .leftJoinAndSelect('product.images', 'image')
+                .leftJoinAndSelect('product.variants', 'variant')
+                .leftJoinAndSelect('variant.values', 'variantValue')
+                .leftJoinAndSelect('variantValue.image', 'variantValueImage')
+                .leftJoinAndSelect('product.skus', 'sku')
+                .leftJoinAndSelect('sku.variantValues', 'skuVariantValue')
+                .leftJoinAndSelect('sku.image', 'skuImage');
+
+            // EXISTS keeps every category/family on the returned product even
+            // when the filter only matches one of them.
+            if (dto.categoryId) {
+                query.andWhere(
+                    'EXISTS (SELECT 1 FROM product_categories pc WHERE pc."productId" = product.id AND pc."categoryId" = :categoryId)',
+                    { categoryId: dto.categoryId },
+                );
+            }
+            if (dto.familyId) {
+                query.andWhere(
+                    'EXISTS (SELECT 1 FROM product_families pf WHERE pf."productId" = product.id AND pf."familyId" = :familyId)',
+                    { familyId: dto.familyId },
+                );
+            }
+            if (dto.q) {
+                query.andWhere(
+                    '(product.name ILIKE :q OR product.ref ILIKE :q OR product.subtitle ILIKE :q OR product.description ILIKE :q OR category.name ILIKE :q OR family.name ILIKE :q)',
+                    { q: `%${dto.q}%` },
+                );
+            }
+
+            query
+                .orderBy('product.createdAt', 'DESC')
+                .addOrderBy('product.id', 'DESC')
+                .skip((page - 1) * limit)
+                .take(limit);
+
+            const [products, total] = await query.getManyAndCount();
+            return {
+                items: products.map((product) => this.toPublic(product)),
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            };
+        };
+
+        return this.cache.getOrSet(key, CACHE_TTLS_SECONDS.catalog, load);
     }
 
     async findOne(id: string): Promise<PublicProductWithDates> {
@@ -630,8 +697,9 @@ export class ProductsService {
     }
 
     private async invalidate(productId: string, skuIds: string[]): Promise<void> {
+        // Paginated keys embed the query, so clear the whole catalog namespace.
+        await this.cache.invalidatePrefix(CACHE_PREFIXES.catalog);
         await this.cache.invalidate(
-            CACHE_PREFIXES.catalog,
             CACHE_PREFIXES.families,
             CACHE_PREFIXES.offersActive,
             CACHE_PREFIXES.stockAvailability,

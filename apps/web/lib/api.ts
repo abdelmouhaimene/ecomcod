@@ -3,6 +3,8 @@ import type {
   CreateCommentPayload,
   GalleryState,
   OrderPayload,
+  PaginatedProducts,
+  ProductListQuery,
   PublicComment,
   PublicCategory,
   PublicFamily,
@@ -80,9 +82,33 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   return (await response.json()) as T;
 }
 
+/** Builds the URL query string that is the source of truth for the catalog. */
+function productQuery(query: ProductListQuery = {}): string {
+  const params = new URLSearchParams();
+  if (query.page !== undefined) params.set('page', String(query.page));
+  if (query.limit !== undefined) params.set('limit', String(query.limit));
+  if (query.q) params.set('q', query.q);
+  if (query.categoryId) params.set('categoryId', query.categoryId);
+  if (query.familyId) params.set('familyId', query.familyId);
+  const serialized = params.toString();
+  return serialized ? `?${serialized}` : '';
+}
+
 /** Typed storefront calls. All paths are relative to `API_URL`. */
 export const catalogApi = {
-  listProducts: () => apiFetch<PublicProduct[]>('/v1/products'),
+  listProducts: (query: ProductListQuery = {}) =>
+    apiFetch<PaginatedProducts>(`/v1/products${productQuery(query)}`),
+  /** For internal consumers that need the whole catalog, not a visible page. */
+  listAllProducts: async (): Promise<PublicProduct[]> => {
+    const first = await catalogApi.listProducts({ page: 1, limit: 1000 });
+    if (first.totalPages <= 1) return first.items;
+    const remaining = await Promise.all(
+      Array.from({ length: first.totalPages - 1 }, (_, index) =>
+        catalogApi.listProducts({ page: index + 2, limit: 1000 }),
+      ),
+    );
+    return [...first.items, ...remaining.flatMap((page) => page.items)];
+  },
   listCategories: () => apiFetch<PublicCategory[]>('/v1/categories'),
   getProduct: (id: string) =>
     apiFetch<PublicProduct>(`/v1/products/${encodeURIComponent(id)}`),

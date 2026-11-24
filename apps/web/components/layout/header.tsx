@@ -156,14 +156,14 @@ export function Header({ currentLocale = 'en' }: { currentLocale?: string }) {
                   <span>{t('home')}</span>
                 </Link>
                 <Link
-                  href="/products/aura-pro-studio"
+                  href="/products"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center space-x-3 p-2.5 rounded-lg hover:bg-surface-container-low text-on-surface hover:text-primary transition-colors"
                 >
                   <span className="material-symbols-outlined text-primary text-[20px]">
-                    headphones
+                    grid_view
                   </span>
-                  <span>{t('featuredProduct')}</span>
+                  <span>{t('products')}</span>
                 </Link>
                 <Link
                   href="/checkout"

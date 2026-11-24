@@ -17,6 +17,7 @@
   "nav": {
     "home": "Accueil",
     "categories": "Catégories",
+    "products": "Produits",
     "cart": "Panier",
     "account": "Compte",
     "menu": "Menu",
@@ -44,6 +45,7 @@
     "hardwareCatalog": "Catégories",
     "curatedSegments": "Parcourir divers produits",
     "allSpecs": "Toutes les spécifications",
+    "exploreAll": "Tout explorer",
     "categoriesLoading": "Chargement des catégories…",
     "categoriesEmpty": "Aucune catégorie disponible.",
     "categories": {
@@ -121,6 +123,7 @@
       "contentLabel": "Votre commentaire",
       "contentPlaceholder": "Dites-nous ce que vous en pensez…",
       "ratingLabel": "Note",
+      "ratingStar": "Noter {count} étoiles",
       "submit": "Publier le commentaire",
       "submitting": "Publication…",
       "success": "Merci — votre commentaire a été publié.",
@@ -232,6 +235,23 @@
       "design": "Design",
       "other": "Option"
     }
+  },
+  "products": {
+    "eyebrow": "CATALOGUE COMPLET",
+    "title": "Explorer la collection",
+    "subtitle": "Toutes les pièces de l’atelier, neuf à la fois.",
+    "searchLabel": "Rechercher des produits",
+    "searchPlaceholder": "Rechercher par nom, référence ou catégorie…",
+    "categoryLabel": "Filtrer par catégorie",
+    "allCategories": "Toutes les catégories",
+    "search": "Rechercher",
+    "showing": "Affichage de {first} à {last} sur {total}",
+    "empty": "Aucun produit ne correspond à votre recherche.",
+    "clear": "Effacer les filtres",
+    "paginationLabel": "Pages du catalogue",
+    "previous": "Page précédente",
+    "next": "Page suivante",
+    "goTo": "Aller à la page {page}"
   },
   "offer": {
     "badgeSingle": "Offre limitée",

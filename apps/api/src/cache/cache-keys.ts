@@ -1,3 +1,5 @@
+import type { ProductListQuery } from '@repo/types';
+
 /** Namespace prefixes keep data cache keys separate from auth/session keys. */
 export const CACHE_PREFIXES = {
     offersActive: 'cache:offers:active:v1',
@@ -19,6 +21,17 @@ export const CACHE_TTLS_SECONDS = {
     offers: 30,
     stock: 15,
 } as const;
+
+/** Query-specific catalog key; always starts with the catalog prefix so one
+ * prefix invalidation clears every filtered page and the legacy list key. */
+export const catalogListKey = (query: ProductListQuery): string => {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 9;
+    const q = query.q ?? '';
+    const categoryId = query.categoryId ?? '';
+    const familyId = query.familyId ?? '';
+    return `${CACHE_PREFIXES.catalog}:page=${page}|limit=${limit}|q=${encodeURIComponent(q)}|category=${categoryId}|family=${familyId}`;
+};
 
 export const productKey = (id: string): string => `${CACHE_PREFIXES.product}${id}`;
 export const skuKey = (id: string): string => `${CACHE_PREFIXES.sku}${id}`;

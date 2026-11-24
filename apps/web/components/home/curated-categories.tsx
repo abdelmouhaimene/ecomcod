@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { PublicCategory } from '@repo/types';
 import { catalogApi } from '../../lib/api';
@@ -50,13 +51,13 @@ export function CuratedCategories({
             {t('curatedSegments')}
           </h2>
         </div>
-        <button
-          onClick={() => onSelectCategory('all')}
-          className="font-label-caps text-label-caps text-primary flex items-center hover:underline underline-offset-4 cursor-pointer"
+        <Link
+          href="/products"
+          className="font-label-caps text-label-caps text-primary flex items-center hover:underline underline-offset-4"
         >
           {t('allSpecs')}{' '}
           <span className="material-symbols-outlined text-[14px] ml-0.5">chevron_right</span>
-        </button>
+        </Link>
       </div>
 
       {/* Horizontal Scrollable Segment Pills */}

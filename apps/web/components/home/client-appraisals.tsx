@@ -277,22 +277,31 @@ export function ClientAppraisals() {
                 />
               </label>
               <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <span className="font-label-caps text-[10px] text-on-surface-variant">
                     {t('ratingLabel')}
                   </span>
-                  <select
-                    value={rating}
-                    onChange={(event) => setRating(Number(event.target.value))}
-                    className="rounded-lg bg-surface-container-lowest border border-outline-variant/60 px-2 py-1 font-label-numeric text-[12px] text-on-surface"
-                  >
+                  <div className="flex items-center gap-0.5" role="radiogroup" aria-label={t('ratingLabel')}>
                     {[1, 2, 3, 4, 5].map((value) => (
-                      <option key={value} value={value}>
-                        {value}/5
-                      </option>
+                      <button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={rating === value}
+                        aria-label={t('ratingStar', { count: value })}
+                        onClick={() => setRating(value)}
+                        className="p-0.5 text-primary hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                      >
+                        <span
+                          className="material-symbols-outlined text-[22px] leading-none"
+                          style={{ fontVariationSettings: value <= rating ? "'FILL' 1" : undefined }}
+                        >
+                          star
+                        </span>
+                      </button>
                     ))}
-                  </select>
-                </label>
+                  </div>
+                </div>
                 <button
                   type="submit"
                   disabled={submitting || content.trim().length < 3}

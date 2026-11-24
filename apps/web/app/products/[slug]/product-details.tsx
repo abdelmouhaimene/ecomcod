@@ -50,7 +50,7 @@ async function findProduct(slug: string): Promise<PublicProduct | null> {
   }
 
   try {
-    const products = await catalogApi.listProducts();
+    const products = await catalogApi.listAllProducts();
     const candidates = [decodedSlug, slug, slugify(decodedSlug)];
     return (
       products.find((product) => {
@@ -125,7 +125,7 @@ export default function ProductDetails() {
       const [productResult, offersResult, productsResult] = await Promise.allSettled([
         findProduct(slug),
         catalogApi.listActiveOffers(),
-        catalogApi.listProducts(),
+        catalogApi.listAllProducts(),
       ]);
       if (cancelled) return;
 
