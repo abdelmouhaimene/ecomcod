@@ -13,6 +13,10 @@ export interface PublicUser<TDate = string> {
     email: string;
     fullName: string | null;
     phoneNumber: string | null;
+    wilayaCode: string | null;
+    wilayaName: string | null;
+    communeCode: string | null;
+    communeName: string | null;
     isActive: boolean;
     emailVerifiedAt: TDate | null;
     createdAt: TDate;
@@ -57,6 +61,16 @@ export interface ResetPasswordPayload {
 export interface ChangePasswordPayload {
     currentPassword: string;
     newPassword: string;
+}
+
+/** Editable delivery contact details stored on the account. */
+export interface UpdateProfilePayload {
+    fullName: string;
+    phoneNumber: string;
+    wilayaCode: string;
+    wilayaName: string;
+    communeCode: string;
+    communeName: string;
 }
 
 /** Response bodies. */

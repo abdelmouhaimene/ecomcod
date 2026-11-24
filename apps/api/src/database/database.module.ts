@@ -12,6 +12,8 @@ import { CategoryIcon1795410800000 } from './migrations/1795410800000-CategoryIc
 import { CreateComments1795411600000 } from './migrations/1795411600000-CreateComments.js';
 import { CreateGallery1795412400000 } from './migrations/1795412400000-CreateGallery.js';
 import { CreateStore1795413200000 } from './migrations/1795413200000-CreateStore.js';
+import { AddOrderDeliveryDetails1795464000000 } from './migrations/1795464000000-AddOrderDeliveryDetails.js';
+import { AddUserProfileLocation1795465000000 } from './migrations/1795465000000-AddUserProfileLocation.js';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { CreateStore1795413200000 } from './migrations/1795413200000-CreateStore
           CreateComments1795411600000,
           CreateGallery1795412400000,
           CreateStore1795413200000,
+          AddOrderDeliveryDetails1795464000000,
+          AddUserProfileLocation1795465000000,
         ];
 
         return {

@@ -7,6 +7,7 @@ import {
     IsInt,
     IsNotEmpty,
     IsNumber,
+    Matches,
     IsOptional,
     IsString,
     IsUUID,
@@ -20,6 +21,9 @@ import type { OrderPayload } from '@repo/types';
 
 const trimString = ({ value }: { value: unknown }): unknown =>
     typeof value === 'string' ? value.trim() : value;
+
+/** Local, `+213` and `00213` Algerian mobile numbers are accepted. */
+const ALGERIAN_PHONE_PATTERN = /^(?:0[567]\d{8}|\+213[567]\d{8}|00213[567]\d{8})$/;
 
 function twoDecimalPlaces(): PropertyDecorator {
     return (target: object, propertyName: string | symbol) => {
@@ -127,6 +131,37 @@ export class OrderDto implements OrderPayload {
     @IsEmail()
     @MaxLength(200)
     customerEmail?: string | null;
+
+    @Transform(trimString)
+    @IsOptional()
+    @Matches(ALGERIAN_PHONE_PATTERN, {
+        message: 'customerPhone must be a valid Algerian mobile number',
+    })
+    customerPhone?: string | null;
+
+    @Transform(trimString)
+    @IsOptional()
+    @Matches(/^\d{2}$/, { message: 'wilayaCode must be a two-digit code' })
+    wilayaCode?: string | null;
+
+    @Transform(trimString)
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(150)
+    wilayaName?: string | null;
+
+    @Transform(trimString)
+    @IsOptional()
+    @Matches(/^\d{4}$/, { message: 'communeCode must be a four-digit code' })
+    communeCode?: string | null;
+
+    @Transform(trimString)
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(150)
+    communeName?: string | null;
 
     @Transform(trimString)
     @IsOptional()

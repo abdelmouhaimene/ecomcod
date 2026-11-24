@@ -2,6 +2,7 @@ import type {
     ChangePasswordResponse,
     ForgotPasswordResponse,
     LoginResponse,
+    MeUser,
     ResetPasswordResponse,
     SignUpResponse,
     VerifyEmailResponse,
@@ -20,6 +21,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { EmailDomainService } from './email-domain.service.js';
 import { OtpService } from './otp.service.js';
 import { UsersService } from '../../users/users.service.js';
@@ -147,6 +149,27 @@ export class EmailAuthService {
         await this.users.save(user);
 
         return { user: this.users.toPublic(user) };
+    }
+
+    /** Updates the delivery contact details saved on the account. */
+    async updateProfile(userId: string, dto: UpdateProfileDto): Promise<MeUser<Date>> {
+        if (!dto.communeCode.startsWith(dto.wilayaCode)) {
+            throw new BadRequestException('Commune must belong to the selected wilaya');
+        }
+
+        const user = await this.users.findByIdWithPassword(userId);
+        if (!user) {
+            throw new BadRequestException('Account not found');
+        }
+
+        user.fullName = dto.fullName;
+        user.phoneNumber = dto.phoneNumber;
+        user.wilayaCode = dto.wilayaCode;
+        user.wilayaName = dto.wilayaName;
+        user.communeCode = dto.communeCode;
+        user.communeName = dto.communeName;
+
+        return this.users.toMe(await this.users.save(user));
     }
 
     /** Change the password of an existing password-backed account. */

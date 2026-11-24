@@ -14,6 +14,7 @@ import { catalogApi } from '../../../lib/api';
 import {
   formatPrice,
   getPrimaryImageUrl,
+  getPrimarySku,
   getRating,
   getSalesCount,
   resolveMediaUrl,
@@ -105,6 +106,7 @@ export default function ProductDetails() {
   const { addToCart, isWishlisted, toggleWishlist } = useStore();
 
   const [product, setProduct] = React.useState<PublicProduct | null>(null);
+  const [products, setProducts] = React.useState<PublicProduct[]>([]);
   const [offers, setOffers] = React.useState<PublicOffer[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
@@ -120,14 +122,16 @@ export default function ProductDetails() {
     setLoading(true);
 
     void (async () => {
-      const [productResult, offersResult] = await Promise.allSettled([
+      const [productResult, offersResult, productsResult] = await Promise.allSettled([
         findProduct(slug),
         catalogApi.listActiveOffers(),
+        catalogApi.listProducts(),
       ]);
       if (cancelled) return;
 
       setProduct(productResult.status === 'fulfilled' ? productResult.value : null);
       setOffers(offersResult.status === 'fulfilled' ? offersResult.value : []);
+      setProducts(productsResult.status === 'fulfilled' ? productsResult.value : []);
       setLoading(false);
     })();
 
@@ -205,6 +209,25 @@ export default function ProductDetails() {
       }),
     [offers, product]
   );
+
+  const relatedProducts = React.useMemo(() => {
+    if (!product || product.families.length === 0) return [];
+    const familyIds = new Set(product.families.map((family) => family.id));
+
+    return products
+      .filter((candidate) => candidate.id !== product.id)
+      .map((candidate) => ({
+        product: candidate,
+        sharedFamilies: candidate.families.filter((family) => familyIds.has(family.id)),
+      }))
+      .filter((entry) => entry.sharedFamilies.length > 0)
+      .sort(
+        (a, b) =>
+          b.sharedFamilies.length - a.sharedFamilies.length ||
+          a.product.name.localeCompare(b.product.name)
+      )
+      .slice(0, 8);
+  }, [product, products]);
 
   const rating = product ? getRating(product) : null;
   const salesCount = product ? getSalesCount(product) : 0;
@@ -613,6 +636,109 @@ export default function ProductDetails() {
           </div>
         </section>
       </main>
+
+      {product.families.length > 0 && (
+        <section className="max-w-md md:max-w-4xl mx-auto px-margin mt-10 space-y-3">
+          <div className="space-y-0.5">
+            <h2 className="font-label-caps text-[11px] text-primary uppercase tracking-widest font-bold">
+              {t('relatedTitle')}
+            </h2>
+            <p className="font-body-sm text-[11px] text-secondary">
+              {t('relatedSubtitle', {
+                families: product.families.map((family) => family.name).join(', '),
+              })}
+            </p>
+          </div>
+
+          {relatedProducts.length === 0 ? (
+            <div className="rounded-xl bg-surface-container-lowest subtle-hairline p-6 text-center">
+              <span className="material-symbols-outlined text-[28px] text-outline">
+                groups
+              </span>
+              <p className="font-body-sm text-body-sm text-secondary mt-1">
+                {t('relatedEmpty')}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              {relatedProducts.map(({ product: related, sharedFamilies }) => {
+                const relatedSku = getPrimarySku(related);
+                const image = getPrimaryImageUrl(related, relatedSku);
+                const relatedRating = getRating(related);
+                const tag = sharedFamilies[0]?.name ?? related.categories[0]?.name ?? '';
+                const href = `/products/${encodeURIComponent(related.id)}`;
+
+                return (
+                  <article
+                    key={related.id}
+                    className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-3 flex flex-col justify-between hover:border-primary-container/60 transition-all gold-glow-subtle group"
+                  >
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-2 gap-2">
+                        {tag && (
+                          <span className="px-1.5 py-0.5 rounded bg-surface border border-primary-container/60 text-primary font-label-caps text-[9px] font-bold line-clamp-1">
+                            {tag}
+                          </span>
+                        )}
+                        <div className="flex items-center text-primary space-x-0.5 flex-shrink-0">
+                          <span
+                            className="material-symbols-outlined text-[13px]"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
+                          >
+                            star
+                          </span>
+                          <span className="font-label-numeric text-[11px] font-semibold text-on-surface">
+                            {relatedRating === null ? '—' : relatedRating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={href}
+                        className="w-full h-32 sm:h-40 rounded-lg bg-surface-container-low overflow-hidden relative flex items-center justify-center border border-outline-variant/20 mb-2.5 block"
+                      >
+                        {image ? (
+                          <img
+                            src={image}
+                            alt={t('imageAlt', { name: related.name })}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <span className="material-symbols-outlined text-[36px] text-outline">
+                            image
+                          </span>
+                        )}
+                      </Link>
+
+                      <Link href={href}>
+                        <h3 className="font-title-md text-[14px] leading-tight text-on-surface font-semibold line-clamp-1 hover:text-primary transition-colors">
+                          {related.name}
+                        </h3>
+                      </Link>
+                      <p className="font-body-sm text-[11px] text-outline mt-0.5 line-clamp-1">
+                        {related.subtitle ?? related.ref}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-outline-variant/20 flex items-center justify-between gap-2">
+                      <span className="font-label-numeric text-[15px] font-bold text-on-surface">
+                        {formatPrice(related.price, currency)}
+                      </span>
+                      <Link
+                        href={href}
+                        aria-label={t('relatedView', { name: related.name })}
+                        className="w-8 h-8 rounded-lg bg-on-surface text-surface-container-lowest flex items-center justify-center border border-primary-container/40 active:scale-90 transition-all hover:bg-primary"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       <aside className="fixed bottom-0 inset-x-0 z-40 bg-surface-container-lowest/95 dark:bg-inverse-surface/95 backdrop-blur-md border-t border-outline-variant/30 py-3 px-margin shadow-2xl">
         <div className="max-w-md md:max-w-4xl mx-auto flex items-center gap-3">

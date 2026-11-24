@@ -16,6 +16,18 @@ export class User {
     @Column({ type: 'varchar', length: 10, nullable: true })
     phoneNumber: string | null;
 
+    @Column({ type: 'varchar', length: 2, nullable: true })
+    wilayaCode: string | null;
+
+    @Column({ type: 'varchar', length: 150, nullable: true })
+    wilayaName: string | null;
+
+    @Column({ type: 'varchar', length: 4, nullable: true })
+    communeCode: string | null;
+
+    @Column({ type: 'varchar', length: 150, nullable: true })
+    communeName: string | null;
+
     @Column({ type: 'varchar', length: 100, unique: true })
     email: string;
 

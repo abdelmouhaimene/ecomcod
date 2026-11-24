@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   HttpCode,
   HttpStatus,
@@ -17,6 +18,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import {
   SESSION_COOKIE,
   SessionService,
@@ -95,6 +97,15 @@ export class EmailAuthController {
   async me(@CurrentUser() user: User) {
     const full = await this.users.findByIdWithPassword(user.id);
     return this.users.toMe(full ?? user);
+  }
+
+  @Patch('me')
+  @UseGuards(SessionGuard)
+  async updateProfile(
+    @CurrentUser() user: User,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(user.id, dto);
   }
 
   @Post('change-password')

@@ -3,20 +3,29 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useAuth } from '../../context/auth-context';
 import { useStore } from '../../context/store-context';
 import { ApiError, catalogApi } from '../../lib/api';
 import { formatPrice } from '../../lib/catalog';
+import {
+  communesForWilaya,
+  fetchLocationData,
+  localizedLocationName,
+  normalizeAlgerianPhone,
+  type CommuneOption,
+  type WilayaOption,
+} from '../../lib/locations';
 
 type ShippingOption = 'whiteGlove' | 'vaultCourier';
 type PaymentOption = 'applePay' | 'creditCard' | 'conciergeInvoice';
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export default function CheckoutPage() {
   const t = useTranslations('checkout');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
+  const { user } = useAuth();
   const {
     cart,
     appliedOffers,
@@ -31,11 +40,53 @@ export default function CheckoutPage() {
   const [shippingOption, setShippingOption] = React.useState<ShippingOption>('whiteGlove');
   const [paymentOption, setPaymentOption] = React.useState<PaymentOption>('applePay');
   const [customerName, setCustomerName] = React.useState('');
-  const [customerEmail, setCustomerEmail] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [wilayas, setWilayas] = React.useState<WilayaOption[]>([]);
+  const [communes, setCommunes] = React.useState<CommuneOption[]>([]);
+  const [wilayaCode, setWilayaCode] = React.useState('');
+  const [communeCode, setCommuneCode] = React.useState('');
+  const [locationDataError, setLocationDataError] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
 
   const currency = tCommon('currency');
+  const fieldClass =
+    'w-full px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/50 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-primary-container disabled:opacity-60';
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    void fetchLocationData()
+      .then(({ wilayas: list, communes: towns }) => {
+        if (cancelled) return;
+        setWilayas(list);
+        setCommunes(towns);
+      })
+      .catch(() => {
+        if (!cancelled) setLocationDataError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The account supplies defaults; edits below belong to this order only.
+  React.useEffect(() => {
+    if (!user) return;
+    if (user.fullName) setCustomerName(user.fullName);
+    if (user.phoneNumber) setPhone(user.phoneNumber);
+    if (user.wilayaCode) setWilayaCode(user.wilayaCode);
+    if (user.communeCode) setCommuneCode(user.communeCode);
+  }, [user?.id]);
+
+  const availableCommunes = React.useMemo(
+    () => communesForWilaya(communes, wilayaCode, locale),
+    [communes, locale, wilayaCode]
+  );
+  const selectedWilaya = wilayas.find((wilaya) => wilaya.code === wilayaCode) ?? null;
+  const selectedCommune = availableCommunes.find((commune) => commune.code === communeCode) ?? null;
+
   const hasFreeShipping = appliedOffers.some((offer) => offer.freeShipping);
   const shippingCost = hasFreeShipping || shippingOption === 'whiteGlove' ? 0 : 45;
   const vaultInsurance = 25;
@@ -87,13 +138,22 @@ export default function CheckoutPage() {
     if ((cart.length === 0 && appliedOffers.length === 0) || isPlacingOrder) return;
 
     const name = customerName.trim();
-    const email = customerEmail.trim();
+    const normalizedPhone = normalizeAlgerianPhone(phone);
+
     if (!name) {
       setError(t('nameRequired'));
       return;
     }
-    if (!EMAIL_PATTERN.test(email)) {
-      setError(t('emailInvalid'));
+    if (!normalizedPhone) {
+      setError(t('phoneInvalid'));
+      return;
+    }
+    if (!selectedWilaya) {
+      setError(t('wilayaRequired'));
+      return;
+    }
+    if (!selectedCommune) {
+      setError(t('communeRequired'));
       return;
     }
 
@@ -113,7 +173,11 @@ export default function CheckoutPage() {
           selections: offer.selections,
         })),
         customerName: name,
-        customerEmail: email,
+        customerPhone: normalizedPhone,
+        wilayaCode: selectedWilaya.code,
+        wilayaName: localizedLocationName(selectedWilaya, locale),
+        communeCode: selectedCommune.code,
+        communeName: localizedLocationName(selectedCommune, locale),
         notes: t('paymentNote', { method: selectedPaymentLabel }),
         baseShippingCost: shippingCost,
         taxAmount: tax + vaultInsurance,
@@ -348,6 +412,8 @@ export default function CheckoutPage() {
           </h3>
           <div className="bg-surface-container-lowest rounded-xl subtle-hairline p-3 space-y-2.5">
             <p className="font-body-sm text-[11px] text-secondary">{t('customerDetailsDesc')}</p>
+            <p className="font-body-sm text-[10px] text-outline">{t('checkoutOnlyHint')}</p>
+
             <label className="block space-y-1">
               <span className="font-label-caps text-[10px] text-on-surface uppercase tracking-wider">
                 {t('customerName')}
@@ -359,23 +425,74 @@ export default function CheckoutPage() {
                 placeholder={t('namePlaceholder')}
                 autoComplete="name"
                 disabled={isPlacingOrder}
-                className="w-full px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/50 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-primary-container"
+                className={fieldClass}
               />
             </label>
+
             <label className="block space-y-1">
               <span className="font-label-caps text-[10px] text-on-surface uppercase tracking-wider">
-                {t('customerEmail')}
+                {t('phone')}
               </span>
               <input
-                type="email"
-                value={customerEmail}
-                onChange={(event) => setCustomerEmail(event.target.value)}
-                placeholder={t('emailPlaceholder')}
-                autoComplete="email"
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                placeholder={t('phonePlaceholder')}
+                autoComplete="tel"
                 disabled={isPlacingOrder}
-                className="w-full px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/50 text-on-surface font-body-sm text-body-sm focus:outline-none focus:border-primary-container"
+                className={fieldClass}
               />
+              <span className="block font-body-sm text-[9px] text-outline">{t('phoneHint')}</span>
             </label>
+
+            <div className="grid grid-cols-2 gap-2">
+              <label className="block space-y-1">
+                <span className="font-label-caps text-[10px] text-on-surface uppercase tracking-wider">
+                  {t('wilaya')}
+                </span>
+                <select
+                  value={wilayaCode}
+                  onChange={(event) => {
+                    setWilayaCode(event.target.value);
+                    setCommuneCode('');
+                  }}
+                  disabled={isPlacingOrder || wilayas.length === 0}
+                  autoComplete="address-level1"
+                  className={fieldClass}
+                >
+                  <option value="">{t('selectWilaya')}</option>
+                  {wilayas.map((wilaya) => (
+                    <option key={wilaya.code} value={wilaya.code}>
+                      {localizedLocationName(wilaya, locale)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-1">
+                <span className="font-label-caps text-[10px] text-on-surface uppercase tracking-wider">
+                  {t('commune')}
+                </span>
+                <select
+                  value={communeCode}
+                  onChange={(event) => setCommuneCode(event.target.value)}
+                  disabled={isPlacingOrder || availableCommunes.length === 0}
+                  autoComplete="address-level2"
+                  className={fieldClass}
+                >
+                  <option value="">{t('selectCommune')}</option>
+                  {availableCommunes.map((commune) => (
+                    <option key={commune.code} value={commune.code}>
+                      {localizedLocationName(commune, locale)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {locationDataError && (
+              <p className="font-body-sm text-[10px] text-error">{t('locationUnavailable')}</p>
+            )}
           </div>
         </section>
 

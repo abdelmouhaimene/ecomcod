@@ -42,6 +42,12 @@ export interface OrderPayload {
     offers?: AppliedOfferPayload[];
     customerName?: string | null;
     customerEmail?: string | null;
+    /** Normalized Algerian mobile number, e.g. `0555123456`. */
+    customerPhone?: string | null;
+    wilayaCode?: string | null;
+    wilayaName?: string | null;
+    communeCode?: string | null;
+    communeName?: string | null;
     notes?: string | null;
     /** Base shipping cost before free-shipping offers; defaults to 0. */
     baseShippingCost?: number;
@@ -71,6 +77,11 @@ export interface PublicOrder<TDate = string> {
     status: OrderStatus;
     customerName: string | null;
     customerEmail: string | null;
+    customerPhone: string | null;
+    wilayaCode: string | null;
+    wilayaName: string | null;
+    communeCode: string | null;
+    communeName: string | null;
     notes: string | null;
     subtotal: number;
     /** Value of free units and pack savings, computed by the API. */

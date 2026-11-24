@@ -40,6 +40,21 @@ export class Order {
     @Column({ type: 'varchar', length: 200, nullable: true })
     customerEmail: string | null;
 
+    @Column({ type: 'varchar', length: 20, nullable: true })
+    customerPhone: string | null;
+
+    @Column({ type: 'varchar', length: 2, nullable: true })
+    wilayaCode: string | null;
+
+    @Column({ type: 'varchar', length: 150, nullable: true })
+    wilayaName: string | null;
+
+    @Column({ type: 'varchar', length: 4, nullable: true })
+    communeCode: string | null;
+
+    @Column({ type: 'varchar', length: 150, nullable: true })
+    communeName: string | null;
+
     @Column({ type: 'text', nullable: true })
     notes: string | null;
 

@@ -216,7 +216,19 @@ describe('Admin accounts (e2e)', () => {
       expect(user).not.toHaveProperty('password');
       expect(user).not.toHaveProperty('googleId');
       expect(Object.keys(user).sort()).toEqual(
-        ['createdAt', 'email', 'emailVerifiedAt', 'fullName', 'id', 'isActive', 'phoneNumber'].sort(),
+        [
+          'communeCode',
+          'communeName',
+          'createdAt',
+          'email',
+          'emailVerifiedAt',
+          'fullName',
+          'id',
+          'isActive',
+          'phoneNumber',
+          'wilayaCode',
+          'wilayaName',
+        ].sort(),
       );
     }
 

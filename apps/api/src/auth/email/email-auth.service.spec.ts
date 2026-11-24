@@ -42,6 +42,7 @@ describe('EmailAuthService', () => {
         createWithPassword: ReturnType<typeof vi.fn>;
         save: ReturnType<typeof vi.fn>;
         toPublic: ReturnType<typeof vi.fn>;
+        toMe: ReturnType<typeof vi.fn>;
     };
     let redis: ReturnType<typeof createRedis>;
 
@@ -57,6 +58,7 @@ describe('EmailAuthService', () => {
             createWithPassword: vi.fn(async (email: string) => ({ id: 'u1', email })),
             save: vi.fn(async (user: unknown) => user),
             toPublic: vi.fn(publicUser),
+            toMe: vi.fn((user: unknown) => user),
         };
         redis = createRedis();
 
@@ -243,6 +245,38 @@ describe('EmailAuthService', () => {
             expect(users.save).toHaveBeenCalledWith(user);
             expect(user.lastLoginAt).toBeInstanceOf(Date);
             expect(result).toEqual({ user: { id: 'u1', email: 'someone@gmail.com' } });
+        });
+    });
+
+    describe('updateProfile', () => {
+        const profile = {
+            fullName: 'Amina Benali',
+            phoneNumber: '0555123456',
+            wilayaCode: '16',
+            wilayaName: 'Alger',
+            communeCode: '1601',
+            communeName: 'Alger-centre',
+        };
+
+        it('stores the account delivery contact details', async () => {
+            const user = { id: 'u1', password: 'hash' };
+            users.findByIdWithPassword.mockResolvedValueOnce(user);
+
+            const result = await service.updateProfile('u1', profile);
+
+            expect(user).toMatchObject(profile);
+            expect(users.save).toHaveBeenCalledWith(user);
+            expect(result).toMatchObject(profile);
+        });
+
+        it('rejects a commune outside the selected wilaya', async () => {
+            const error = await rejected(
+                service.updateProfile('u1', { ...profile, communeCode: '1501' }),
+            );
+
+            expect(error).toBeInstanceOf(BadRequestException);
+            expect(users.findByIdWithPassword).not.toHaveBeenCalled();
+            expect(users.save).not.toHaveBeenCalled();
         });
     });
 

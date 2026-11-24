@@ -257,6 +257,26 @@ describe('OrdersService', () => {
         );
     });
 
+    it('stores the delivery contact details collected at checkout', async () => {
+        await service.create(dto({
+            customerName: 'Amina Benali',
+            customerPhone: '0555123456',
+            wilayaCode: '16',
+            wilayaName: 'Alger',
+            communeCode: '1601',
+            communeName: 'Alger Centre',
+        }));
+
+        expect(savedOrder).toMatchObject({
+            customerName: 'Amina Benali',
+            customerPhone: '0555123456',
+            wilayaCode: '16',
+            wilayaName: 'Alger',
+            communeCode: '1601',
+            communeName: 'Alger Centre',
+        });
+    });
+
     it('rejects a single-product offer without enough qualifying cart units', async () => {
         await expect(service.create(dto({
             items: [{ skuId: 'sku-a', quantity: 1 }],

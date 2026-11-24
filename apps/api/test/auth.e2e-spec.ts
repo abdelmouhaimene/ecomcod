@@ -27,6 +27,7 @@ describe('Auth (e2e)', () => {
   const rememberEmail = `e2e.remember.${stamp}@gmail.com`;
   const resetEmail = `e2e.reset.${stamp}@gmail.com`;
   const googleEmail = `e2e.google.${stamp}@gmail.com`;
+  const profileEmail = `e2e.profile.${stamp}@gmail.com`;
   const password = 'secret1234';
 
   let code = '';
@@ -62,7 +63,7 @@ describe('Auth (e2e)', () => {
   });
 
   afterAll(async () => {
-    for (const address of [email, rememberEmail, resetEmail, googleEmail]) {
+    for (const address of [email, rememberEmail, resetEmail, googleEmail, profileEmail]) {
       await cleanup(address);
     }
     await app.close();
@@ -162,6 +163,49 @@ describe('Auth (e2e)', () => {
       .get('/v1/auth/me')
       .set('Cookie', cookie)
       .expect(401);
+  });
+
+  it('saves the account delivery contact details and exposes them on /me', async () => {
+    const cookie = sessionCookie(await signupAndVerify(profileEmail));
+    const profile = {
+      fullName: 'Amina Benali',
+      phoneNumber: '0555 12 34 56',
+      wilayaCode: '16',
+      wilayaName: 'Alger',
+      communeCode: '1601',
+      communeName: 'Alger-centre',
+    };
+
+    await request(app.getHttpServer())
+      .patch('/v1/auth/me')
+      .set('Cookie', cookie)
+      .send(profile)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({
+          fullName: 'Amina Benali',
+          phoneNumber: '0555123456',
+          wilayaCode: '16',
+          wilayaName: 'Alger',
+          communeCode: '1601',
+          communeName: 'Alger-centre',
+          hasPassword: true,
+        });
+      });
+
+    await request(app.getHttpServer())
+      .get('/v1/auth/me')
+      .set('Cookie', cookie)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({ phoneNumber: '0555123456', communeCode: '1601' });
+      });
+
+    await request(app.getHttpServer())
+      .patch('/v1/auth/me')
+      .set('Cookie', cookie)
+      .send({ ...profile, communeCode: '1501' })
+      .expect(400);
   });
 
   it('rejects a wrong code and a reused code', async () => {
