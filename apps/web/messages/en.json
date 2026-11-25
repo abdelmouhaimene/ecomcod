@@ -297,10 +297,6 @@
     "shippingMethod": "Delivery Concierge",
     "whiteGlove": "White-Glove Armored Express (Complimentary)",
     "vaultCourier": "Private Vault Courier (Next Day)",
-    "paymentMethod": "Select Payment Protocol",
-    "applePay": "Apple Pay (Instant Biometric)",
-    "creditCard": "Black Card / Luxury Card",
-    "conciergeInvoice": "Private Concierge Wire / Invoice",
     "orderSummary": "Valuation Summary",
     "subtotal": "Subtotal",
     "vaultInsurance": "Vault Insurance",
@@ -345,7 +341,6 @@
     "errorNetwork": "Could not reach the order service. Please try again.",
     "errorGeneric": "Something went wrong while placing your order. Please try again.",
     "errorWithMessage": "The order could not be placed: {message}",
-    "paymentNote": "Payment method: {method}",
     "offersInBag": "Offers in bag",
     "offerPrice": "Offer price",
     "offerTotal": "Offer total",
@@ -494,5 +489,19 @@
     "openMap": "Open in Google Maps",
     "noMap": "The map location is not available yet.",
     "mapAlt": "Map showing {name}"
+  },
+  "faq": {
+    "eyebrow": "HELP CENTER",
+    "title": "Frequently asked questions",
+    "subtitle": "Answers to the questions we hear most often.",
+    "empty": "No questions have been published yet.",
+    "unavailable": "Questions are temporarily unavailable. Please try again later."
+  },
+  "policy": {
+    "eyebrow": "STORE POLICY",
+    "title": "Policy",
+    "subtitle": "The terms and information that guide your order.",
+    "empty": "No policy articles have been published yet.",
+    "unavailable": "Policy articles are temporarily unavailable. Please try again later."
   }
 }

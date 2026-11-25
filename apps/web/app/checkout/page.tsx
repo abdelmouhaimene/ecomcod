@@ -18,7 +18,6 @@ import {
 } from '../../lib/locations';
 
 type ShippingOption = 'whiteGlove' | 'vaultCourier';
-type PaymentOption = 'applePay' | 'creditCard' | 'conciergeInvoice';
 
 export default function CheckoutPage() {
   const t = useTranslations('checkout');
@@ -38,7 +37,6 @@ export default function CheckoutPage() {
   } = useStore();
 
   const [shippingOption, setShippingOption] = React.useState<ShippingOption>('whiteGlove');
-  const [paymentOption, setPaymentOption] = React.useState<PaymentOption>('applePay');
   const [customerName, setCustomerName] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [wilayas, setWilayas] = React.useState<WilayaOption[]>([]);
@@ -110,19 +108,6 @@ export default function CheckoutPage() {
       .entries(),
   ].map(([skuId, quantity]) => ({ skuId, quantity }));
 
-  const paymentOptions = React.useMemo<
-    Array<{ id: PaymentOption; label: string; icon: string }>
-  >(
-    () => [
-      { id: 'applePay', label: t('applePay'), icon: 'fingerprint' },
-      { id: 'creditCard', label: t('creditCard'), icon: 'credit_card' },
-      { id: 'conciergeInvoice', label: t('conciergeInvoice'), icon: 'account_balance' },
-    ],
-    [t]
-  );
-  const selectedPaymentLabel =
-    paymentOptions.find((option) => option.id === paymentOption)?.label ?? '';
-
   const localizedError = (cause: unknown): string => {
     if (!(cause instanceof ApiError)) return t('errorNetwork');
     if (cause.status === 409 || /stock|quantity/i.test(cause.message)) {
@@ -178,7 +163,6 @@ export default function CheckoutPage() {
         wilayaName: localizedLocationName(selectedWilaya, locale),
         communeCode: selectedCommune.code,
         communeName: localizedLocationName(selectedCommune, locale),
-        notes: t('paymentNote', { method: selectedPaymentLabel }),
         baseShippingCost: shippingCost,
         taxAmount: tax + vaultInsurance,
       });
@@ -556,43 +540,6 @@ export default function CheckoutPage() {
                   : t('vaultCourierPrice', { price: formatPrice(45, currency) })}
               </span>
             </button>
-          </div>
-        </section>
-
-        <section className="space-y-2">
-          <h3 className="font-label-caps text-[11px] text-primary uppercase tracking-widest font-bold">
-            {t('paymentMethod')}
-          </h3>
-          <div className="space-y-2">
-            {paymentOptions.map((option) => {
-              const isSelected = paymentOption === option.id;
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => setPaymentOption(option.id)}
-                  className={`w-full p-3 rounded-xl text-left flex items-center justify-between transition-all ${
-                    isSelected
-                      ? 'bg-surface-container-lowest border-2 border-primary-container shadow-sm'
-                      : 'bg-surface-container-lowest subtle-hairline hover:border-outline'
-                  }`}
-                  type="button"
-                >
-                  <div className="flex items-center space-x-2.5">
-                    <span className="material-symbols-outlined text-primary text-[20px]">
-                      {option.icon}
-                    </span>
-                    <span className="font-title-md text-[13px] font-semibold text-on-surface">
-                      {option.label}
-                    </span>
-                  </div>
-                  {isSelected && (
-                    <span className="material-symbols-outlined text-primary text-[18px]">
-                      check_circle
-                    </span>
-                  )}
-                </button>
-              );
-            })}
           </div>
         </section>
 

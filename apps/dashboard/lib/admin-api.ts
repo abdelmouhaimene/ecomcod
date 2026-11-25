@@ -7,6 +7,7 @@ import {
   type ChangeAdminPasswordPayload,
   type CreateAdminCommentPayload,
   type CreateAdminPayload,
+  type FaqPayload,
   type FamilyPayload,
   type GalleryPhotoPayload,
   type GalleryState,
@@ -14,13 +15,16 @@ import {
   type MessageResponse,
   type OfferPayload,
   type OrderPayload,
+  type PolicyArticlePayload,
   type ProductPayload,
   type PublicAdmin,
   type PublicCategory,
   type PublicComment,
+  type PublicFaqItem,
   type PublicFamily,
   type PublicGalleryPhoto,
   type PublicOffer,
+  type PublicPolicyArticle,
   type PublicOrder,
   type PublicProduct,
   type PublicStoreInfo,
@@ -43,6 +47,8 @@ export { AdminRole };
 export type {
   CategoryPayload,
   CreateAdminCommentPayload,
+  FaqPayload,
+  PublicFaqItem,
   PublicComment,
   GalleryPhotoPayload,
   GalleryState,
@@ -58,6 +64,8 @@ export type {
   PublicFamily,
   PublicOffer,
   PublicOrder,
+  PolicyArticlePayload,
+  PublicPolicyArticle,
   PublicProduct,
   PublicProductImage,
   PublicProductSku,
@@ -227,6 +235,34 @@ export const adminApi = {
     }),
   removeGalleryPhoto: (id: string) =>
     adminFetch<void>(`/v1/admin/gallery/photos/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Storefront FAQ (all active admins may read; system/manager may mutate).
+  listFaqs: () => adminFetch<PublicFaqItem[]>('/v1/admin/faq'),
+  getFaq: (id: string) =>
+    adminFetch<PublicFaqItem>(`/v1/admin/faq/${encodeURIComponent(id)}`),
+  createFaq: (payload: FaqPayload) =>
+    adminFetch<PublicFaqItem>('/v1/admin/faq', { method: 'POST', body: payload }),
+  updateFaq: (id: string, payload: FaqPayload) =>
+    adminFetch<PublicFaqItem>(`/v1/admin/faq/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: payload,
+    }),
+  removeFaq: (id: string) =>
+    adminFetch<void>(`/v1/admin/faq/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+
+  // Storefront policy articles (all active admins may read; system/manager may mutate).
+  listPolicies: () => adminFetch<PublicPolicyArticle[]>('/v1/admin/policy'),
+  getPolicy: (id: string) =>
+    adminFetch<PublicPolicyArticle>(`/v1/admin/policy/${encodeURIComponent(id)}`),
+  createPolicy: (payload: PolicyArticlePayload) =>
+    adminFetch<PublicPolicyArticle>('/v1/admin/policy', { method: 'POST', body: payload }),
+  updatePolicy: (id: string, payload: PolicyArticlePayload) =>
+    adminFetch<PublicPolicyArticle>(`/v1/admin/policy/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: payload,
+    }),
+  removePolicy: (id: string) =>
+    adminFetch<void>(`/v1/admin/policy/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   // Store page (all active admins may read; system/manager may edit).
   getStore: () => adminFetch<PublicStoreInfo>('/v1/admin/store'),

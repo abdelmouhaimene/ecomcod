@@ -108,6 +108,26 @@ const navItems: NavItem[] = [
         ),
     },
     {
+        href: '/faq',
+        labelKey: 'navFaq',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2-2.5 3.7M12 17h.01" />
+            </svg>
+        ),
+    },
+    {
+        href: '/policy',
+        labelKey: 'navPolicy',
+        icon: (
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 3.5h8l4 4v13H6z" />
+                <path d="M14 3.5v4h4M9 12h6M9 15.5h5" />
+            </svg>
+        ),
+    },
+    {
         href: '/pos',
         labelKey: 'navPos',
         icon: (

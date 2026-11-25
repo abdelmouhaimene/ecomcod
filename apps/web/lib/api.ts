@@ -3,6 +3,8 @@ import type {
   CreateCommentPayload,
   GalleryState,
   OrderPayload,
+  PublicFaqItem,
+  PublicPolicyArticle,
   PaginatedProducts,
   ProductListQuery,
   PublicComment,
@@ -116,6 +118,8 @@ export const catalogApi = {
   getOffer: (id: string) =>
     apiFetch<PublicOffer>(`/v1/offers/${encodeURIComponent(id)}`),
   listComments: () => apiFetch<PublicComment[]>('/v1/comments'),
+  listActiveFaqs: () => apiFetch<PublicFaqItem[]>('/v1/faq'),
+  listActivePolicies: () => apiFetch<PublicPolicyArticle[]>('/v1/policy'),
   getGallery: () => apiFetch<GalleryState>('/v1/gallery'),
   getStore: () => apiFetch<PublicStoreInfo>('/v1/store'),
   createComment: (payload: CreateCommentPayload) =>

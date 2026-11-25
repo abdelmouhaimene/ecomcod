@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useStoreInfo } from '../../context/store-info-context';
 import { resolveMediaUrl } from '../../lib/catalog';
@@ -91,18 +92,18 @@ export function Footer() {
             {/* Links sit below the phone numbers and email */}
             <div className="border-t border-outline-variant/30 pt-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4">
-                <a
+                <Link
                   className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
-                  href="#"
+                  href="/policy"
                 >
                   {t('links.policy')}
-                </a>
-                <a
+                </Link>
+                <Link
                   className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
-                  href="#"
+                  href="/faq"
                 >
                   {t('links.faq')}
-                </a>
+                </Link>
                 <a
                   className="font-body-sm text-body-sm text-on-surface-variant dark:text-secondary-fixed-dim hover:text-primary transition-colors duration-150"
                   href="#"

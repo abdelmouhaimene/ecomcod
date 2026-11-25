@@ -297,10 +297,6 @@
     "shippingMethod": "Conciergerie de Livraison",
     "whiteGlove": "Transport Blindé Gants Blancs (Offert)",
     "vaultCourier": "Courrier Privé Sécurisé (24h)",
-    "paymentMethod": "Protocole de Règlement",
-    "applePay": "Apple Pay (Biométrique Instantané)",
-    "creditCard": "Carte Noire / Carte Luxe",
-    "conciergeInvoice": "Virement Conciergerie Privée",
     "orderSummary": "Récapitulatif de la Valeur",
     "subtotal": "Sous-total",
     "vaultInsurance": "Assurance Coffre-Fort",
@@ -345,7 +341,6 @@
     "errorNetwork": "Impossible de joindre le service de commande. Veuillez réessayer.",
     "errorGeneric": "Une erreur est survenue lors de la commande. Veuillez réessayer.",
     "errorWithMessage": "La commande n'a pas pu être passée : {message}",
-    "paymentNote": "Moyen de paiement : {method}",
     "offersInBag": "Offres dans le sac",
     "offerPrice": "Prix de l'offre",
     "offerTotal": "Total de l'offre",
@@ -494,5 +489,19 @@
     "openMap": "Ouvrir dans Google Maps",
     "noMap": "L'emplacement sur la carte n'est pas encore disponible.",
     "mapAlt": "Carte de {name}"
+  },
+  "faq": {
+    "eyebrow": "CENTRE D'AIDE",
+    "title": "Questions fréquentes",
+    "subtitle": "Les réponses aux questions que l'on nous pose le plus souvent.",
+    "empty": "Aucune question n'a encore été publiée.",
+    "unavailable": "Les questions sont temporairement indisponibles. Veuillez réessayer plus tard."
+  },
+  "policy": {
+    "eyebrow": "POLITIQUE DE LA BOUTIQUE",
+    "title": "Politique",
+    "subtitle": "Les conditions et informations qui encadrent votre commande.",
+    "empty": "Aucun article de politique n'a encore été publié.",
+    "unavailable": "Les articles de politique sont temporairement indisponibles. Veuillez réessayer plus tard."
   }
 }

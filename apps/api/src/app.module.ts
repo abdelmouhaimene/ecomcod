@@ -16,7 +16,9 @@ import { StockModule } from './stock/stock.module.js';
 import { OffersModule } from './offers/offers.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { CommentsModule } from './comments/comments.module.js';
+import { FaqModule } from './faq/faq.module.js';
 import { GalleryModule } from './gallery/gallery.module.js';
+import { PolicyModule } from './policy/policy.module.js';
 import { StoreModule } from './store/store.module.js';
 
 @Module({
@@ -36,7 +38,9 @@ import { StoreModule } from './store/store.module.js';
     OffersModule,
     OrdersModule,
     CommentsModule,
+    FaqModule,
     GalleryModule,
+    PolicyModule,
     StoreModule,
   ],
   controllers: [AppController],
