@@ -140,6 +140,9 @@
       "goTo": "Aller à la page {index} de la galerie",
       "imageAlt": "{name} à {location}"
     },
+    "video": {
+      "embedTitle": "Vidéo présentée par la boutique"
+    },
     "footer": {
       "about": "Matériel de précision architecturale et accessoires physiques conçus pour les environnements de calcul les plus exigeants.",
       "boutique": "Boutique Flagship",
@@ -299,9 +302,7 @@
     "vaultCourier": "Courrier Privé Sécurisé (24h)",
     "orderSummary": "Récapitulatif de la Valeur",
     "subtotal": "Sous-total",
-    "vaultInsurance": "Assurance Coffre-Fort",
     "shipping": "Livraison",
-    "tax": "Taxe Estimée",
     "total": "Valeur Totale",
     "placeOrder": "Confirmer & Expédier",
     "backToStore": "Retour à la boutique",

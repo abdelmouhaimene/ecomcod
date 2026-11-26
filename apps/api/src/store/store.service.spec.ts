@@ -20,6 +20,8 @@ const payload = {
     website: 'https://example.com',
     address: 'Algiers',
     mapQuery: '36.7538, 3.0588',
+    homeVideoEnabled: true,
+    homeVideoUrl: 'https://youtu.be/dQw4w9WgXcQ',
     phones: ['+213 555 000 001', '+213 555 000 002'],
     socialLinks: [
         { platform: 'instagram' as const, url: 'https://instagram.com/aurelia' },
@@ -45,6 +47,8 @@ describe('StoreService', () => {
             website: '',
             address: '',
             mapQuery: '36.7538, 3.0588',
+            homeVideoEnabled: true,
+            homeVideoUrl: 'https://youtu.be/dQw4w9WgXcQ',
             ...timestamps,
         };
         settings = {
@@ -100,6 +104,8 @@ describe('StoreService', () => {
             socialLinks: [{ id: 'link-1', platform: 'instagram' }],
         });
         expect(info.mapEmbedUrl).toContain('output=embed');
+        expect(info.homeVideoEnabled).toBe(true);
+        expect(info.homeVideoEmbedUrl).toContain('/embed/dQw4w9WgXcQ');
     });
 
     it('seeds the singleton settings row when missing', async () => {
@@ -129,7 +135,12 @@ describe('StoreService', () => {
         expect(transaction).toHaveBeenCalledTimes(1);
         expect(manager.save).toHaveBeenCalledTimes(3);
         expect(manager.save).toHaveBeenCalledWith(
-            expect.objectContaining({ name: 'Aurelia Tech', mapQuery: '36.7538, 3.0588' })
+            expect.objectContaining({
+                name: 'Aurelia Tech',
+                mapQuery: '36.7538, 3.0588',
+                homeVideoEnabled: true,
+                homeVideoUrl: 'https://youtu.be/dQw4w9WgXcQ',
+            })
         );
         expect(manager.save).toHaveBeenCalledWith([
             expect.objectContaining({ number: '+213 555 000 001', position: 0 }),

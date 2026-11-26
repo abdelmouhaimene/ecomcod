@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { PublicStoreInfo } from '@repo/types';
+import { toYouTubeEmbedUrl, type PublicStoreInfo } from '@repo/types';
 import { DataSource, Repository } from 'typeorm';
 import { StoreInfoDto } from './dto/store.dto.js';
 import { StorePhone } from './entities/store-phone.entity.js';
@@ -36,6 +36,8 @@ export class StoreService {
             address: '',
             logo: '',
             mapQuery: '',
+            homeVideoEnabled: false,
+            homeVideoUrl: '',
         });
         await this.settings.save(created);
         return created;
@@ -64,6 +66,9 @@ export class StoreService {
             mapQuery: setting.mapQuery,
             mapLink: toMapLink(setting.mapQuery),
             mapEmbedUrl: toMapEmbedUrl(setting.mapQuery),
+            homeVideoEnabled: setting.homeVideoEnabled,
+            homeVideoUrl: setting.homeVideoUrl,
+            homeVideoEmbedUrl: toYouTubeEmbedUrl(setting.homeVideoUrl),
             phones: phones.map((phone) => ({
                 id: phone.id,
                 number: phone.number,
@@ -94,6 +99,8 @@ export class StoreService {
             setting.website = dto.website;
             setting.address = dto.address;
             setting.mapQuery = dto.mapQuery;
+            setting.homeVideoEnabled = dto.homeVideoEnabled ?? false;
+            setting.homeVideoUrl = dto.homeVideoUrl ?? '';
             await manager.save(setting);
 
             // Replacing both lists keeps the singleton in sync in one transaction.

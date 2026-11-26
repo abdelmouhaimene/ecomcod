@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
+import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { ThemeProvider } from '../components/theme-provider';
@@ -13,17 +13,24 @@ import { catalogApi } from '../lib/api';
 import { resolveMediaUrl } from '../lib/catalog';
 import './globals.css';
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const plusJakartaSans = localFont({
+  src: './fonts/PlusJakartaSans-Variable.woff2',
+  weight: '200 800',
   variable: '--font-plus-jakarta',
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
+const spaceGrotesk = localFont({
+  src: './fonts/SpaceGrotesk-Variable.woff2',
+  weight: '300 700',
   variable: '--font-space-grotesk',
+  display: 'swap',
+});
+
+const materialSymbols = localFont({
+  src: './fonts/MaterialSymbolsOutlined-Variable.woff2',
+  weight: '100 700',
+  variable: '--font-material-symbols',
   display: 'swap',
 });
 
@@ -59,15 +66,14 @@ export default async function RootLayout({
   const isRtl = locale === 'ar';
 
   return (
-    <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'} suppressHydrationWarning>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        />
-      </head>
+    <html
+      lang={locale}
+      dir={isRtl ? 'rtl' : 'ltr'}
+      suppressHydrationWarning
+      className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} ${materialSymbols.variable}`}
+    >
       <body
-        className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} font-body-md text-body-md bg-background text-on-surface antialiased selection:bg-primary-container selection:text-surface-container-lowest transition-colors duration-200 min-h-screen flex flex-col`}
+        className="font-body-md text-body-md bg-background text-on-surface antialiased selection:bg-primary-container selection:text-surface-container-lowest transition-colors duration-200 min-h-screen flex flex-col"
       >
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ThemeProvider

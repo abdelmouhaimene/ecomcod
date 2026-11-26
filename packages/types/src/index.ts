@@ -6,6 +6,7 @@ export * from './comment/commentType.js';
 export * from './faq/faqType.js';
 export * from './gallery/galleryType.js';
 export * from './store/storeType.js';
+export * from './store/youtube.js';
 export * from './admin/adminType.js';
 export * from './category/categoryType.js';
 export * from './family/familyType.js';

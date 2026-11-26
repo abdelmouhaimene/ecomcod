@@ -4,6 +4,7 @@ import * as React from 'react';
 import { CuratedDrops } from '../components/home/curated-drops';
 import { CuratedCategories } from '../components/home/curated-categories';
 import { CategoryProducts } from '../components/home/category-products';
+import { FeaturedVideoSection } from '../components/home/featured-video-section';
 import { ClientAppraisals } from '../components/home/client-appraisals';
 import { GallerySection } from '../components/home/gallery-section';
 
@@ -22,6 +23,9 @@ export default function HomePage() {
       >
         <CategoryProducts selectedCategory={selectedCategory} />
       </CuratedCategories>
+
+      {/* 3. OPTIONAL YOUTUBE VIDEO (visibility managed from the dashboard) */}
+      <FeaturedVideoSection />
 
       {/* 4. CLIENT REVIEWS & TESTIMONIALS SECTION */}
       <ClientAppraisals />

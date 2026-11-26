@@ -15,6 +15,7 @@ import { CreateStore1795413200000 } from './migrations/1795413200000-CreateStore
 import { AddOrderDeliveryDetails1795464000000 } from './migrations/1795464000000-AddOrderDeliveryDetails.js';
 import { AddUserProfileLocation1795465000000 } from './migrations/1795465000000-AddUserProfileLocation.js';
 import { CreateFaqAndPolicy1795550000000 } from './migrations/1795550000000-CreateFaqAndPolicy.js';
+import { AddStoreHomeVideo1795630000000 } from './migrations/1795630000000-AddStoreHomeVideo.js';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { CreateFaqAndPolicy1795550000000 } from './migrations/1795550000000-Crea
           AddOrderDeliveryDetails1795464000000,
           AddUserProfileLocation1795465000000,
           CreateFaqAndPolicy1795550000000,
+          AddStoreHomeVideo1795630000000,
         ];
 
         return {

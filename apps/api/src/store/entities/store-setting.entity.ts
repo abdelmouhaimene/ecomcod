@@ -30,6 +30,13 @@ export class StoreSetting {
     @Column({ type: 'varchar', length: 500, default: '' })
     mapQuery: string;
 
+    /** Optional home-page YouTube section. */
+    @Column({ type: 'boolean', default: false })
+    homeVideoEnabled: boolean;
+
+    @Column({ type: 'varchar', length: 500, default: '' })
+    homeVideoUrl: string;
+
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
 

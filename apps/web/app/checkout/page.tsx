@@ -87,9 +87,7 @@ export default function CheckoutPage() {
 
   const hasFreeShipping = appliedOffers.some((offer) => offer.freeShipping);
   const shippingCost = hasFreeShipping || shippingOption === 'whiteGlove' ? 0 : 45;
-  const vaultInsurance = 25;
-  const tax = Math.round(subtotal * 0.08);
-  const total = subtotal + shippingCost + vaultInsurance + tax;
+  const total = subtotal + shippingCost;
 
   // Buy-X-get-Y offers need their paid units in `items`; the API adds free and
   // pack lines itself from `offers`, so those lines are never sent as regular.
@@ -164,7 +162,6 @@ export default function CheckoutPage() {
         communeCode: selectedCommune.code,
         communeName: localizedLocationName(selectedCommune, locale),
         baseShippingCost: shippingCost,
-        taxAmount: tax + vaultInsurance,
       });
 
       clearCart();
@@ -563,21 +560,9 @@ export default function CheckoutPage() {
             </span>
           </div>
           <div className="flex justify-between text-xs text-secondary">
-            <span>{t('vaultInsurance')}</span>
-            <span className="font-label-numeric text-on-surface font-semibold">
-              {formatPrice(vaultInsurance, currency)}
-            </span>
-          </div>
-          <div className="flex justify-between text-xs text-secondary">
             <span>{t('shipping')}</span>
             <span className="font-label-numeric text-on-surface font-semibold">
               {shippingCost === 0 ? t('complimentary') : formatPrice(shippingCost, currency)}
-            </span>
-          </div>
-          <div className="flex justify-between text-xs text-secondary">
-            <span>{t('tax')}</span>
-            <span className="font-label-numeric text-on-surface font-semibold">
-              {formatPrice(tax, currency)}
             </span>
           </div>
           <div className="pt-2 border-t border-outline-variant/30 flex justify-between items-baseline">

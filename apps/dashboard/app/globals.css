@@ -2079,6 +2079,19 @@ textarea.field-input {
     background: var(--surface-input);
 }
 
+.store-video-toggle {
+    margin-block-start: 18px;
+}
+
+.store-video-frame {
+    inline-size: 100%;
+    aspect-ratio: 16 / 9;
+    margin-block-start: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-input);
+}
+
 .text-link {
     display: inline-block;
     margin-block-start: 8px;

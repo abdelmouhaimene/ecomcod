@@ -42,6 +42,12 @@ export interface PublicStoreInfo<TDate = string> {
     mapLink: string;
     /** URL ready for a Google Maps iframe; empty when no location is set. */
     mapEmbedUrl: string;
+    /** Whether the optional YouTube section appears on the home page. */
+    homeVideoEnabled: boolean;
+    /** Raw YouTube link entered in the dashboard. */
+    homeVideoUrl: string;
+    /** URL ready for a YouTube iframe; empty when no valid link is set. */
+    homeVideoEmbedUrl: string;
     phones: PublicStorePhone[];
     socialLinks: PublicStoreSocialLink[];
     createdAt: TDate;
@@ -57,6 +63,9 @@ export interface StoreInfoPayload {
     website: string;
     address: string;
     mapQuery: string;
+    /** Optional home-page video. Omitting either field disables the section. */
+    homeVideoEnabled?: boolean;
+    homeVideoUrl?: string;
     phones: string[];
     socialLinks: Array<{ platform: SocialPlatform; url: string }>;
 }

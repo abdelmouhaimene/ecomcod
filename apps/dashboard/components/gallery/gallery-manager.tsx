@@ -18,6 +18,11 @@ interface GalleryFormState {
     location: string;
 }
 
+interface GalleryManagerProps {
+    /** Render as a subsection of another page, without duplicate page-level chrome. */
+    embedded?: boolean;
+}
+
 function today(): string {
     return new Date().toISOString().slice(0, 10);
 }
@@ -30,7 +35,7 @@ function apiMessage(caught: unknown, fallback: string): string {
     return caught instanceof AdminApiError ? caught.message : fallback;
 }
 
-export function GalleryManager(): React.JSX.Element {
+export function GalleryManager({ embedded = false }: GalleryManagerProps): React.JSX.Element {
     const { admin } = useAuth();
     const { locale, t } = useDashboard();
     const canManage =
@@ -168,7 +173,9 @@ export function GalleryManager(): React.JSX.Element {
         <>
             <header className="page-heading toolbar">
                 <div>
-                    <h2 className="page-title">{t('galleryTitle')}</h2>
+                    <h2 className={embedded ? 'section-title' : 'page-title'}>
+                        {t('galleryTitle')}
+                    </h2>
                     <p className="page-subtitle">{t('gallerySubtitle')}</p>
                 </div>
                 <div className="toolbar-actions">
@@ -193,7 +200,7 @@ export function GalleryManager(): React.JSX.Element {
                     {formError}
                 </p>
             ) : null}
-            {!canManage ? (
+            {!canManage && !embedded ? (
                 <div className="notice info" role="note">
                     <strong className="notice-title">{t('catalogReadOnlyTitle')}</strong>
                     <span>{t('catalogReadOnlyDescription')}</span>

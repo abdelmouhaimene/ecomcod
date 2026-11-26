@@ -28,6 +28,8 @@ describe('Store (e2e)', () => {
         website: '',
         address: '',
         mapQuery: '',
+        homeVideoEnabled: false,
+        homeVideoUrl: '',
         phones: [],
         socialLinks: [],
     };
@@ -87,6 +89,9 @@ describe('Store (e2e)', () => {
             name: 'AURELIA TECH',
             mapLink: '',
             mapEmbedUrl: '',
+            homeVideoEnabled: false,
+            homeVideoUrl: '',
+            homeVideoEmbedUrl: '',
             phones: [],
             socialLinks: [],
         });
@@ -113,6 +118,27 @@ describe('Store (e2e)', () => {
                 ...defaults,
                 socialLinks: [{ platform: 'myspace', url: 'https://myspace.com/x' }],
             })
+            .expect(400);
+    });
+
+    it('persists and validates the optional home video link', async () => {
+        const homeVideoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=12';
+        const updated = await request(app.getHttpServer())
+            .put('/v1/admin/store')
+            .set('Cookie', systemCookie)
+            .send({ ...defaults, homeVideoEnabled: true, homeVideoUrl })
+            .expect(200);
+
+        expect(updated.body).toMatchObject({
+            homeVideoEnabled: true,
+            homeVideoUrl,
+            homeVideoEmbedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+        });
+
+        await request(app.getHttpServer())
+            .put('/v1/admin/store')
+            .set('Cookie', systemCookie)
+            .send({ ...defaults, homeVideoEnabled: true, homeVideoUrl: 'https://example.com/video' })
             .expect(400);
     });
 

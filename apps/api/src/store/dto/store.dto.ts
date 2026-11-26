@@ -2,16 +2,22 @@ import { Transform, Type } from 'class-transformer';
 import {
     ArrayMaxSize,
     IsArray,
+    IsBoolean,
     IsEmail,
     IsIn,
+    IsOptional,
     IsString,
     IsUrl,
     MaxLength,
     MinLength,
     ValidateNested,
+    registerDecorator,
+    type ValidationArguments,
+    type ValidationOptions,
 } from 'class-validator';
 import {
     SOCIAL_PLATFORMS,
+    parseYouTubeVideoId,
     type SocialPlatform,
     type StoreInfoPayload,
 } from '@repo/types';
@@ -27,6 +33,29 @@ const trimEach = ({ value }: { value: unknown }): unknown =>
     Array.isArray(value)
         ? value.map((item) => (typeof item === 'string' ? item.trim() : item))
         : value;
+
+/** Accepts an empty value or a link from which a YouTube video id can be read. */
+function IsYouTubeVideoUrl(validationOptions?: ValidationOptions) {
+    return (object: object, propertyName: string): void => {
+        registerDecorator({
+            name: 'isYouTubeVideoUrl',
+            target: object.constructor,
+            propertyName,
+            options: validationOptions,
+            validator: {
+                validate(value: unknown) {
+                    return (
+                        typeof value === 'string' &&
+                        (value.trim() === '' || parseYouTubeVideoId(value) !== null)
+                    );
+                },
+                defaultMessage(args: ValidationArguments) {
+                    return `${args.property} must be a valid YouTube video URL`;
+                },
+            },
+        });
+    };
+}
 
 export class StoreSocialLinkDto {
     @IsIn(SOCIAL_PLATFORMS)
@@ -75,6 +104,17 @@ export class StoreInfoDto implements StoreInfoPayload {
     @IsString()
     @MaxLength(500)
     mapQuery: string;
+
+    @IsOptional()
+    @IsBoolean()
+    homeVideoEnabled?: boolean;
+
+    @IsOptional()
+    @Transform(blankToEmpty)
+    @IsString()
+    @MaxLength(500)
+    @IsYouTubeVideoUrl()
+    homeVideoUrl?: string;
 
     @Transform(trimEach)
     @IsArray()

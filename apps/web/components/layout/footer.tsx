@@ -15,7 +15,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant/30 pt-8 pb-16">
+    <footer className="w-full bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant/30 mt-8 pt-8 pb-16">
       <div className="w-full px-margin max-w-7xl mx-auto flex flex-col space-y-6">
         <section
           id="store-info"

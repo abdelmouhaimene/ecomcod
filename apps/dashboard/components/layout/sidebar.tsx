@@ -87,17 +87,6 @@ const navItems: NavItem[] = [
         ),
     },
     {
-        href: '/gallery',
-        labelKey: 'navGallery',
-        icon: (
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="3.5" y="5" width="17" height="14" rx="2" />
-                <circle cx="8.5" cy="9.5" r="1.5" />
-                <path d="m4.5 17 5-5 3.5 3.5 2.5-2.5 4 4" />
-            </svg>
-        ),
-    },
-    {
         href: '/store',
         labelKey: 'navStore',
         icon: (

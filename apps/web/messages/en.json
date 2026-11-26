@@ -140,6 +140,9 @@
       "goTo": "Go to gallery page {index}",
       "imageAlt": "{name} in {location}"
     },
+    "video": {
+      "embedTitle": "Featured store video"
+    },
     "footer": {
       "about": "Architectural precision hardware and high-grade physical accoutrements crafted for discerning computational environments.",
       "boutique": "Flagship Boutique",
@@ -299,9 +302,7 @@
     "vaultCourier": "Private Vault Courier (Next Day)",
     "orderSummary": "Valuation Summary",
     "subtotal": "Subtotal",
-    "vaultInsurance": "Vault Insurance",
     "shipping": "Shipping",
-    "tax": "Estimated Tax",
     "total": "Total Valuation",
     "placeOrder": "Confirm & Dispatch Order",
     "backToStore": "Return to store",

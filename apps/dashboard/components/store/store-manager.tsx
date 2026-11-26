@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react';
 import {
     AdminRole,
+    parseYouTubeVideoId,
     SOCIAL_PLATFORMS,
+    toYouTubeEmbedUrl,
     type PublicStoreInfo,
     type SocialPlatform,
     type StoreInfoPayload,
 } from '@repo/types';
 import { AdminApiError, adminApi, resolveMediaUrl } from '../../lib/admin-api';
+import { GalleryManager } from '../gallery/gallery-manager';
 import { useAuth } from '../providers/auth-provider';
 import { useDashboard } from '../providers/dashboard-provider';
 
@@ -35,6 +38,8 @@ interface StoreForm {
     website: string;
     address: string;
     mapQuery: string;
+    homeVideoEnabled: boolean;
+    homeVideoUrl: string;
     phones: string[];
     social: Record<SocialPlatform, SocialField>;
 }
@@ -58,6 +63,8 @@ function formFromStore(info: PublicStoreInfo): StoreForm {
         website: info.website,
         address: info.address,
         mapQuery: info.mapQuery,
+        homeVideoEnabled: info.homeVideoEnabled,
+        homeVideoUrl: info.homeVideoUrl,
         phones: info.phones.map((phone) => phone.number),
         social,
     };
@@ -89,6 +96,8 @@ export function StoreManager(): React.JSX.Element {
     const [notice, setNotice] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [uploadingLogo, setUploadingLogo] = useState(false);
+
+    const videoPreviewUrl = form ? toYouTubeEmbedUrl(form.homeVideoUrl) : '';
 
     const loadStore = useCallback(async () => {
         setLoading(true);
@@ -151,6 +160,7 @@ export function StoreManager(): React.JSX.Element {
 
         const name = form.name.trim();
         const email = form.email.trim();
+        const homeVideoUrl = form.homeVideoUrl.trim();
         const phones = form.phones.map((phone) => phone.trim()).filter(Boolean);
         const socialLinks = SOCIAL_PLATFORMS.filter(
             (platform) => form.social[platform].enabled
@@ -168,6 +178,10 @@ export function StoreManager(): React.JSX.Element {
             setFormError(t('storeSocialUrlRequired'));
             return;
         }
+        if ((form.homeVideoEnabled || homeVideoUrl) && !parseYouTubeVideoId(homeVideoUrl)) {
+            setFormError(t('storeVideoUrlRequired'));
+            return;
+        }
 
         const payload: StoreInfoPayload = {
             name,
@@ -177,6 +191,8 @@ export function StoreManager(): React.JSX.Element {
             website: form.website.trim(),
             address: form.address.trim(),
             mapQuery: form.mapQuery.trim(),
+            homeVideoEnabled: form.homeVideoEnabled,
+            homeVideoUrl,
             phones,
             socialLinks,
         };
@@ -494,6 +510,56 @@ export function StoreManager(): React.JSX.Element {
                             })}
                         </div>
                     </section>
+
+                    <section className="section-card narrow" aria-labelledby="store-video-title">
+                        <h3 className="section-title" id="store-video-title">
+                            {t('storeVideo')}
+                        </h3>
+                        <p className="section-description">{t('storeVideoHint')}</p>
+                        <div className="store-video-toggle">
+                            <label className="store-social-check">
+                                <input
+                                    type="checkbox"
+                                    checked={form.homeVideoEnabled}
+                                    disabled={!canManage}
+                                    aria-label={t('storeVideoEnabled')}
+                                    onChange={(event) =>
+                                        setField('homeVideoEnabled', event.target.checked)
+                                    }
+                                />
+                                <span>{t('storeVideoEnabled')}</span>
+                            </label>
+                        </div>
+                        <div className="field">
+                            <label className="field-label" htmlFor="store-video-url">
+                                {t('storeVideoUrl')}
+                            </label>
+                            <input
+                                id="store-video-url"
+                                className="field-input"
+                                type="url"
+                                value={form.homeVideoUrl}
+                                disabled={!canManage}
+                                placeholder="https://www.youtube.com/watch?v=..."
+                                onChange={(event) => setField('homeVideoUrl', event.target.value)}
+                            />
+                        </div>
+                        {videoPreviewUrl ? (
+                            <iframe
+                                className="store-video-frame"
+                                src={videoPreviewUrl}
+                                title={t('storeVideo')}
+                                loading="lazy"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                                referrerPolicy="strict-origin-when-cross-origin"
+                            />
+                        ) : (
+                            <p className="field-hint">{t('storeVideoPreview')}</p>
+                        )}
+                    </section>
+
+                    <GalleryManager embedded />
 
                     {canManage ? (
                         <div className="form-actions">
